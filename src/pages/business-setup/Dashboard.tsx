@@ -7,6 +7,7 @@ import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Progress } from '../../components/ui/progress';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { toast } from 'sonner';
 
 interface BusinessSetupDashboardProps {
   onNavigate: (page: string) => void;
@@ -48,46 +49,53 @@ const proOfficerWorkload = [
 ];
 
 export function BusinessSetupDashboard({ onNavigate }: BusinessSetupDashboardProps) {
+  const handleTakeAction = (company: string, type: string) => {
+    toast.info('Action Required', {
+      description: `Opening renewal process for ${company} - ${type}`
+    });
+    onNavigate('bs-renewals');
+  };
+
   return (
-    <div className="p-8 max-w-[1800px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1800px] mx-auto">
       <PageHeader
         title="Business Setup Dashboard"
         description="Probiz Corporate - Comprehensive company formation and PRO services management"
         actions={
           <>
             <Button variant="outline" className="rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50">
-              <Clock className="w-4 h-4 mr-2" strokeWidth={1.5} />
-              This Month
+              <Clock className="w-4 h-4 md:mr-2" strokeWidth={1.5} />
+              <span className="hidden md:inline">This Month</span>
             </Button>
             <Button 
               onClick={() => onNavigate('bs-leads')}
               className="rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 shadow-lg shadow-emerald-500/30"
             >
-              <Users className="w-4 h-4 mr-2" strokeWidth={1.5} />
-              Add Inquiry
+              <Users className="w-4 h-4 md:mr-2" strokeWidth={1.5} />
+              <span className="hidden md:inline">Add Inquiry</span>
             </Button>
           </>
         }
       />
 
       {/* Premium Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
         <button 
           onClick={() => onNavigate('bs-leads')}
-          className="group relative bg-white rounded-2xl p-6 border border-gray-200/60 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-300 cursor-pointer overflow-hidden"
+          className="group relative bg-white rounded-2xl p-4 md:p-6 border border-gray-200/60 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-300 cursor-pointer overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-50 to-transparent rounded-full -mr-16 -mt-16 opacity-50 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg shadow-emerald-500/30">
-                <Users className="w-6 h-6 text-white" strokeWidth={1.5} />
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div className="p-2.5 md:p-3 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg shadow-emerald-500/30">
+                <Users className="w-5 h-5 md:w-6 md:h-6 text-white" strokeWidth={1.5} />
               </div>
-              <Badge className="bg-green-50 text-green-700 border-green-200 font-semibold">
+              <Badge className="bg-green-50 text-green-700 border-green-200 font-semibold text-xs">
                 +18%
               </Badge>
             </div>
-            <div className="text-sm font-medium text-gray-600 mb-1">Total Inquiries</div>
-            <div className="text-3xl font-bold text-gray-900 mb-2">156</div>
+            <div className="text-xs md:text-sm font-medium text-gray-600 mb-1">Total Inquiries</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">156</div>
             <div className="text-xs text-gray-500 flex items-center">
               <TrendingUp className="w-3 h-3 mr-1" strokeWidth={2} />
               from last month
@@ -95,56 +103,56 @@ export function BusinessSetupDashboard({ onNavigate }: BusinessSetupDashboardPro
           </div>
         </button>
 
-        <div className="group relative bg-white rounded-2xl p-6 border border-gray-200/60 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 overflow-hidden">
+        <div className="group relative bg-white rounded-2xl p-4 md:p-6 border border-gray-200/60 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-transparent rounded-full -mr-16 -mt-16 opacity-50 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/30">
-                <FileCheck className="w-6 h-6 text-white" strokeWidth={1.5} />
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div className="p-2.5 md:p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/30">
+                <FileCheck className="w-5 h-5 md:w-6 md:h-6 text-white" strokeWidth={1.5} />
               </div>
-              <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-semibold">
+              <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-semibold text-xs">
                 12 today
               </Badge>
             </div>
-            <div className="text-sm font-medium text-gray-600 mb-1">Consultations Done</div>
-            <div className="text-3xl font-bold text-gray-900 mb-2">89</div>
+            <div className="text-xs md:text-sm font-medium text-gray-600 mb-1">Consultations Done</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">89</div>
             <div className="text-xs text-gray-500">Scheduled this month</div>
           </div>
         </div>
 
         <div 
           onClick={() => onNavigate('bs-pipeline')}
-          className="group relative bg-white rounded-2xl p-6 border border-gray-200/60 shadow-sm hover:shadow-xl hover:border-purple-200 transition-all duration-300 cursor-pointer overflow-hidden"
+          className="group relative bg-white rounded-2xl p-4 md:p-6 border border-gray-200/60 shadow-sm hover:shadow-xl hover:border-purple-200 transition-all duration-300 cursor-pointer overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-transparent rounded-full -mr-16 -mt-16 opacity-50 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/30">
-                <Send className="w-6 h-6 text-white" strokeWidth={1.5} />
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div className="p-2.5 md:p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/30">
+                <Send className="w-5 h-5 md:w-6 md:h-6 text-white" strokeWidth={1.5} />
               </div>
-              <Badge className="bg-orange-50 text-orange-700 border-orange-200 font-semibold">
+              <Badge className="bg-orange-50 text-orange-700 border-orange-200 font-semibold text-xs">
                 8 pending
               </Badge>
             </div>
-            <div className="text-sm font-medium text-gray-600 mb-1">Applications Submitted</div>
-            <div className="text-3xl font-bold text-gray-900 mb-2">45</div>
+            <div className="text-xs md:text-sm font-medium text-gray-600 mb-1">Applications Submitted</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">45</div>
             <div className="text-xs text-gray-500">Awaiting approval</div>
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-2xl p-6 border border-gray-200/60 shadow-sm hover:shadow-xl hover:border-amber-200 transition-all duration-300 overflow-hidden">
+        <div className="group relative bg-white rounded-2xl p-4 md:p-6 border border-gray-200/60 shadow-sm hover:shadow-xl hover:border-amber-200 transition-all duration-300 overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-50 to-transparent rounded-full -mr-16 -mt-16 opacity-50 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg shadow-amber-500/30">
-                <Award className="w-6 h-6 text-white" strokeWidth={1.5} />
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div className="p-2.5 md:p-3 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg shadow-amber-500/30">
+                <Award className="w-5 h-5 md:w-6 md:h-6 text-white" strokeWidth={1.5} />
               </div>
-              <Badge className="bg-green-50 text-green-700 border-green-200 font-semibold">
+              <Badge className="bg-green-50 text-green-700 border-green-200 font-semibold text-xs">
                 +15%
               </Badge>
             </div>
-            <div className="text-sm font-medium text-gray-600 mb-1">Licenses Issued (MTD)</div>
-            <div className="text-3xl font-bold text-gray-900 mb-2">23</div>
+            <div className="text-xs md:text-sm font-medium text-gray-600 mb-1">Licenses Issued (MTD)</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">23</div>
             <div className="text-xs text-gray-500 flex items-center">
               <TrendingUp className="w-3 h-3 mr-1" strokeWidth={2} />
               from last month
@@ -154,16 +162,16 @@ export function BusinessSetupDashboard({ onNavigate }: BusinessSetupDashboardPro
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         {/* Cases Trend */}
         <Card className="lg:col-span-2 rounded-2xl border-gray-200/60 shadow-sm hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-3 md:pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold text-gray-900">Cases & Revenue Trend</CardTitle>
-                <p className="text-sm text-gray-500 mt-1">Monthly performance overview</p>
+                <CardTitle className="text-base md:text-lg font-semibold text-gray-900">Cases & Revenue Trend</CardTitle>
+                <p className="text-xs md:text-sm text-gray-500 mt-1">Monthly performance overview</p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-lg">
+              <Button variant="outline" size="sm" className="rounded-lg hidden md:flex">
                 <ArrowUpRight className="w-4 h-4" strokeWidth={1.5} />
               </Button>
             </div>
@@ -197,19 +205,19 @@ export function BusinessSetupDashboard({ onNavigate }: BusinessSetupDashboardPro
 
         {/* Jurisdiction Distribution */}
         <Card className="rounded-2xl border-gray-200/60 shadow-sm hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900">Jurisdiction Types</CardTitle>
-            <p className="text-sm text-gray-500 mt-1">Distribution breakdown</p>
+          <CardHeader className="pb-3 md:pb-4">
+            <CardTitle className="text-base md:text-lg font-semibold text-gray-900">Jurisdiction Types</CardTitle>
+            <p className="text-xs md:text-sm text-gray-500 mt-1">Distribution breakdown</p>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
                   data={jurisdictionData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
+                  innerRadius={50}
+                  outerRadius={85}
                   paddingAngle={2}
                   dataKey="count"
                 >
@@ -227,14 +235,14 @@ export function BusinessSetupDashboard({ onNavigate }: BusinessSetupDashboardPro
                 />
               </PieChart>
             </ResponsiveContainer>
-            <div className="space-y-3 mt-4">
+            <div className="space-y-2 md:space-y-3 mt-3 md:mt-4">
               {jurisdictionData.map((item) => (
-                <div key={item.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={item.name} className="flex items-center justify-between p-2.5 md:p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                    <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                    <span className="text-xs md:text-sm font-medium text-gray-700">{item.name}</span>
                   </div>
-                  <span className="text-sm font-bold text-gray-900">{item.count}</span>
+                  <span className="text-xs md:text-sm font-bold text-gray-900">{item.count}</span>
                 </div>
               ))}
             </div>
@@ -243,19 +251,19 @@ export function BusinessSetupDashboard({ onNavigate }: BusinessSetupDashboardPro
       </div>
 
       {/* Renewals & PRO Officers */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Upcoming Renewals */}
         <Card className="rounded-2xl border-gray-200/60 shadow-sm hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-3 md:pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold text-gray-900">Upcoming Renewals</CardTitle>
-                <p className="text-sm text-gray-500 mt-1">Urgent actions required</p>
+                <CardTitle className="text-base md:text-lg font-semibold text-gray-900">Upcoming Renewals</CardTitle>
+                <p className="text-xs md:text-sm text-gray-500 mt-1">Urgent actions required</p>
               </div>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="rounded-lg"
+                className="rounded-lg text-xs"
                 onClick={() => onNavigate('bs-renewals')}
               >
                 View All
@@ -263,28 +271,28 @@ export function BusinessSetupDashboard({ onNavigate }: BusinessSetupDashboardPro
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {upcomingRenewals.map((renewal, index) => (
-                <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200">
+                <div key={index} className="p-3 md:p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200">
                   <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm text-gray-900 mb-1">{renewal.company}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm text-gray-900 mb-1 truncate">{renewal.company}</div>
                       <div className="text-xs text-gray-600">{renewal.type}</div>
                     </div>
                     <Badge className={
-                      renewal.status === 'urgent' ? 'bg-red-50 text-red-700 border-red-200' :
-                      renewal.status === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                      'bg-blue-50 text-blue-700 border-blue-200'
+                      renewal.status === 'urgent' ? 'bg-red-50 text-red-700 border-red-200 ml-2' :
+                      renewal.status === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-200 ml-2' :
+                      'bg-blue-50 text-blue-700 border-blue-200 ml-2'
                     }>
-                      {renewal.daysLeft} days
+                      {renewal.daysLeft}d
                     </Badge>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-gray-500">
                     <div className="flex items-center">
                       <Calendar className="w-3 h-3 mr-1" strokeWidth={2} />
                       {renewal.date}
                     </div>
-                    <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg">
+                    <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg w-full sm:w-auto" onClick={() => handleTakeAction(renewal.company, renewal.type)}>
                       Take Action
                     </Button>
                   </div>
@@ -296,28 +304,28 @@ export function BusinessSetupDashboard({ onNavigate }: BusinessSetupDashboardPro
 
         {/* PRO Officer Workload */}
         <Card className="rounded-2xl border-gray-200/60 shadow-sm hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-3 md:pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold text-gray-900">PRO Officer Workload</CardTitle>
-                <p className="text-sm text-gray-500 mt-1">Current assignments</p>
+                <CardTitle className="text-base md:text-lg font-semibold text-gray-900">PRO Officer Workload</CardTitle>
+                <p className="text-xs md:text-sm text-gray-500 mt-1">Current assignments</p>
               </div>
-              <Briefcase className="w-5 h-5 text-emerald-500" strokeWidth={1.5} />
+              <Briefcase className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" strokeWidth={1.5} />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {proOfficerWorkload.map((officer) => (
-                <div key={officer.name} className="p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200">
+                <div key={officer.name} className="p-3 md:p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200">
                   <div className="flex items-center gap-3 mb-3">
-                    <Avatar className="h-10 w-10 ring-2 ring-gray-200">
+                    <Avatar className="h-9 w-9 md:h-10 md:w-10 ring-2 ring-gray-200">
                       <AvatarImage src={officer.avatar} />
-                      <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                      <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-xs md:text-sm">
                         {officer.name.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm text-gray-900">{officer.name}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm text-gray-900 truncate">{officer.name}</div>
                       <div className="text-xs text-gray-500">{officer.completed} completed cases</div>
                     </div>
                   </div>

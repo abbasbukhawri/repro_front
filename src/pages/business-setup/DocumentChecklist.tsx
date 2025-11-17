@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Badge } from '../../components/ui/badge';
 import { Progress } from '../../components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { useState } from 'react';
+import { BulkUploadModal } from '../../components/modals/BulkUploadModal';
+import { toast } from 'sonner';
 
 interface DocumentChecklistProps {
   onNavigate: (page: string) => void;
@@ -71,13 +74,45 @@ export function DocumentChecklist({ onNavigate }: DocumentChecklistProps) {
     }
   };
 
+  const [isBulkUploadModalOpen, setBulkUploadModalOpen] = useState(false);
+
+  const handleDownloadAll = () => {
+    toast.success('Downloading Documents', {
+      description: 'All documents are being downloaded as a ZIP file'
+    });
+  };
+
+  const handleViewDocument = (docName: string) => {
+    toast.info('Opening Document', {
+      description: `Viewing ${docName}`
+    });
+  };
+
+  const handleUploadDocument = (docName: string) => {
+    toast.success('Upload Started', {
+      description: `${docName} upload initiated`
+    });
+  };
+
+  const handleApproveDocument = (docName: string) => {
+    toast.success('Document Approved', {
+      description: `${docName} has been approved`
+    });
+  };
+
+  const handleRejectDocument = (docName: string) => {
+    toast.error('Document Rejected', {
+      description: `${docName} has been rejected`
+    });
+  };
+
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
       <PageHeader
         title="Document Checklist Manager"
         description="Track document collection and approval status"
         actions={
-          <Button className="bg-green-600 hover:bg-green-700">
+          <Button className="bg-green-600 hover:bg-green-700" onClick={() => setBulkUploadModalOpen(true)}>
             <Upload className="w-4 h-4 mr-2" />
             Bulk Upload
           </Button>
@@ -191,7 +226,7 @@ export function DocumentChecklist({ onNavigate }: DocumentChecklistProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>John Smith - Company Formation Documents</CardTitle>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleDownloadAll}>
             <Download className="w-4 h-4 mr-2" />
             Download All
           </Button>
@@ -213,10 +248,10 @@ export function DocumentChecklist({ onNavigate }: DocumentChecklistProps) {
                 <div className="flex items-center gap-3">
                   {getStatusBadge(doc.status)}
                   {doc.status !== 'not-uploaded' && (
-                    <Button size="sm" variant="outline">View</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleViewDocument(doc.name)}>View</Button>
                   )}
                   {doc.status === 'not-uploaded' && (
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleUploadDocument(doc.name)}>
                       <Upload className="w-3 h-3 mr-1" />
                       Upload
                     </Button>
@@ -227,6 +262,12 @@ export function DocumentChecklist({ onNavigate }: DocumentChecklistProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal
+        isOpen={isBulkUploadModalOpen}
+        onClose={() => setBulkUploadModalOpen(false)}
+      />
     </div>
   );
 }

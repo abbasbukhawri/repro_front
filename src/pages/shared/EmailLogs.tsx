@@ -4,6 +4,8 @@ import { PageHeader } from '../../components/crm/PageHeader';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
+import { useState } from 'react';
+import { LogEmailModal } from '../../components/modals/LogEmailModal';
 
 interface EmailLogsProps {
   brand: BrandType;
@@ -19,14 +21,15 @@ const emails = [
 
 export function EmailLogs({ brand, onNavigate }: EmailLogsProps) {
   const brandColor = brand === 'real-estate' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700';
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
       <PageHeader
         title="Email Logs"
         description="Track all email communications"
         actions={
-          <Button className={brandColor}>
+          <Button className={brandColor} onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Log Email
           </Button>
@@ -60,6 +63,9 @@ export function EmailLogs({ brand, onNavigate }: EmailLogsProps) {
           </Card>
         ))}
       </div>
+
+      {/* Modal */}
+      <LogEmailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

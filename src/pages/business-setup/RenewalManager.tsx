@@ -4,35 +4,54 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { useState } from 'react';
+import { CreateRenewalTaskModal } from '../../components/modals/CreateRenewalTaskModal';
+import { useSettings } from '../../contexts/SettingsContext';
+import { toast } from 'sonner';
 
 interface RenewalManagerProps {
   onNavigate: (page: string) => void;
 }
 
 const urgentRenewals = [
-  { id: 1, company: 'Tech Solutions LLC', type: 'Trade License', expiryDate: '2025-11-20', daysLeft: 4, status: 'Not Started', client: 'John Smith', fee: 'AED 15,000' },
-  { id: 2, company: 'Global Traders FZ', type: 'Trade License', expiryDate: '2025-11-25', daysLeft: 9, status: 'In Progress', client: 'Maria Garcia', fee: 'AED 12,000' },
+  { id: 1, company: 'Tech Solutions LLC', type: 'Trade License', expiryDate: '2025-11-20', daysLeft: 4, status: 'Not Started', client: 'John Smith', fee: 15000 },
+  { id: 2, company: 'Global Traders FZ', type: 'Trade License', expiryDate: '2025-11-25', daysLeft: 9, status: 'In Progress', client: 'Maria Garcia', fee: 12000 },
 ];
 
 const upcomingRenewals = [
-  { id: 3, company: 'Digital Marketing Co', type: 'Visa Renewal', expiryDate: '2025-12-01', daysLeft: 15, status: 'Not Started', client: 'David Chen', fee: 'AED 3,000' },
-  { id: 4, company: 'Consulting Partners', type: 'Ejari Renewal', expiryDate: '2025-12-10', daysLeft: 24, status: 'Not Started', client: 'Sophie Laurent', fee: 'AED 2,000' },
-  { id: 5, company: 'IT Services Hub', type: 'Trade License', expiryDate: '2025-12-15', daysLeft: 29, status: 'Awaiting Documents', client: 'Raj Patel', fee: 'AED 18,000' },
+  { id: 3, company: 'Digital Marketing Co', type: 'Visa Renewal', expiryDate: '2025-12-01', daysLeft: 15, status: 'Not Started', client: 'David Chen', fee: 3000 },
+  { id: 4, company: 'Consulting Partners', type: 'Ejari Renewal', expiryDate: '2025-12-10', daysLeft: 24, status: 'Not Started', client: 'Sophie Laurent', fee: 2000 },
+  { id: 5, company: 'IT Services Hub', type: 'Trade License', expiryDate: '2025-12-15', daysLeft: 29, status: 'Awaiting Documents', client: 'Raj Patel', fee: 18000 },
 ];
 
 const completedRenewals = [
-  { id: 6, company: 'Marketing Agency LLC', type: 'Trade License', completedDate: '2025-11-10', client: 'Emma Wilson', fee: 'AED 14,000' },
-  { id: 7, company: 'Trading Co FZ', type: 'Visa Renewal', completedDate: '2025-11-08', client: 'Ahmed Hassan', fee: 'AED 4,500' },
+  { id: 6, company: 'Marketing Agency LLC', type: 'Trade License', completedDate: '2025-11-10', client: 'Emma Wilson', fee: 14000 },
+  { id: 7, company: 'Trading Co FZ', type: 'Visa Renewal', completedDate: '2025-11-08', client: 'Ahmed Hassan', fee: 4500 },
 ];
 
 export function RenewalManager({ onNavigate }: RenewalManagerProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { formatCurrency } = useSettings();
+
+  const handleStartRenewal = (company: string, type: string) => {
+    toast.success('Renewal Process Started', {
+      description: `${type} renewal initiated for ${company}`
+    });
+  };
+
+  const handleViewDetails = (company: string) => {
+    toast.info('Opening Details', {
+      description: `Viewing renewal details for ${company}`
+    });
+  };
+
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
       <PageHeader
         title="Renewal Manager"
         description="Track and manage license, visa, and contract renewals"
         actions={
-          <Button className="bg-green-600 hover:bg-green-700">
+          <Button className="bg-green-600 hover:bg-green-700" onClick={() => setIsModalOpen(true)}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Create Renewal Task
           </Button>
@@ -125,7 +144,7 @@ export function RenewalManager({ onNavigate }: RenewalManagerProps) {
                         <Badge variant="destructive" className="mb-2">
                           {renewal.daysLeft} days left
                         </Badge>
-                        <div className="text-sm">{renewal.fee}</div>
+                        <div className="text-sm">{formatCurrency(renewal.fee)}</div>
                       </div>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-red-200">
@@ -134,7 +153,7 @@ export function RenewalManager({ onNavigate }: RenewalManagerProps) {
                       </div>
                       <div className="flex gap-2">
                         <Badge variant="secondary">{renewal.status}</Badge>
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                        <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleStartRenewal(renewal.company, renewal.type)}>
                           Start Renewal
                         </Button>
                       </div>
@@ -165,7 +184,7 @@ export function RenewalManager({ onNavigate }: RenewalManagerProps) {
                         <Badge variant="secondary" className="mb-2">
                           {renewal.daysLeft} days left
                         </Badge>
-                        <div className="text-sm">{renewal.fee}</div>
+                        <div className="text-sm">{formatCurrency(renewal.fee)}</div>
                       </div>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -174,7 +193,7 @@ export function RenewalManager({ onNavigate }: RenewalManagerProps) {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary">{renewal.status}</Badge>
-                        <Button size="sm" variant="outline">View Details</Button>
+                        <Button size="sm" variant="outline" onClick={() => handleViewDetails(renewal.company)}>View Details</Button>
                       </div>
                     </div>
                   </div>
@@ -203,7 +222,7 @@ export function RenewalManager({ onNavigate }: RenewalManagerProps) {
                       </div>
                       <div className="text-right">
                         <Badge className="bg-green-100 text-green-700 mb-2">Completed</Badge>
-                        <div className="text-sm">{renewal.fee}</div>
+                        <div className="text-sm">{formatCurrency(renewal.fee)}</div>
                       </div>
                     </div>
                     <div className="text-xs text-gray-600 pt-2 border-t border-gray-100">
@@ -216,6 +235,9 @@ export function RenewalManager({ onNavigate }: RenewalManagerProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal */}
+      <CreateRenewalTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

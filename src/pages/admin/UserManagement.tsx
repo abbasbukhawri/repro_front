@@ -74,7 +74,7 @@ export function UserManagement({ onNavigate }: UserManagementProps) {
   const proOfficers = users.filter(u => u.brandAccess.includes('Business Setup') && u.role === 'PRO Officer').length;
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
       <PageHeader
         title="User Management"
         description="Manage user accounts and permissions"

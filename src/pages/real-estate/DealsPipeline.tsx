@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { Building2, DollarSign, Calendar, User, MapPin, Phone, Mail, TrendingUp } from 'lucide-react';
+import { Building2, DollarSign, Calendar, User, MapPin, Phone, Mail, TrendingUp, MoreVertical, Eye, Edit, Trash2, AlertTriangle, FileText } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
 import { PageHeader } from '../../components/crm/PageHeader';
 import { useCRM } from '../../contexts/CRMContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../../components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { toast } from 'sonner@2.0.3';
 
 interface DealsPipelineProps {
   onNavigate: (page: string) => void;
@@ -14,6 +18,9 @@ interface DealsPipelineProps {
 
 export function DealsPipeline({ onNavigate }: DealsPipelineProps) {
   const { deals } = useCRM();
+  const { formatCurrency } = useSettings();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedDeal, setSelectedDeal] = useState<any>(null);
 
   // Filter only won/converted deals
   const wonDeals = deals.filter(deal => deal.stage === 'Won' || deal.stage === 'Closed' || deal.status === 'Won');
@@ -41,7 +48,7 @@ export function DealsPipeline({ onNavigate }: DealsPipelineProps) {
                 <DollarSign className="w-4 h-4 text-blue-600" />
               </div>
             </div>
-            <div className="text-2xl md:text-3xl text-blue-600">AED {(totalRevenue / 1000000).toFixed(1)}M</div>
+            <div className="text-2xl md:text-3xl text-blue-600">{formatCurrency(totalRevenue)}</div>
             <div className="text-xs text-gray-500 mt-1">From closed deals</div>
           </CardContent>
         </Card>
@@ -65,7 +72,7 @@ export function DealsPipeline({ onNavigate }: DealsPipelineProps) {
                 <DollarSign className="w-4 h-4 text-purple-600" />
               </div>
             </div>
-            <div className="text-2xl md:text-3xl">AED {(avgDealSize / 1000000).toFixed(1)}M</div>
+            <div className="text-2xl md:text-3xl">{formatCurrency(avgDealSize)}</div>
             <div className="text-xs text-gray-500 mt-1">Per closed deal</div>
           </CardContent>
         </Card>
@@ -121,7 +128,7 @@ export function DealsPipeline({ onNavigate }: DealsPipelineProps) {
                     </TableCell>
                     <TableCell>
                       <div className="text-blue-600 font-semibold">
-                        AED {(deal.value / 1000000).toFixed(2)}M
+                        {formatCurrency(deal.value)}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -145,9 +152,57 @@ export function DealsPipeline({ onNavigate }: DealsPipelineProps) {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="outline" size="sm" className="rounded-lg">
-                        View Details
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="rounded-lg">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            toast.info('View Details', {
+                              description: `Opening details for ${deal.client}'s deal`
+                            });
+                          }}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            toast.info('Edit Deal', {
+                              description: 'Edit functionality will open the deal editor'
+                            });
+                          }}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Deal
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedDeal(deal);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Deal
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => {
+                            toast.warning('Deal Marked as Lost', {
+                              description: `${deal.client}'s deal has been marked as lost`
+                            });
+                          }}>
+                            <AlertTriangle className="mr-2 h-4 w-4" />
+                            Mark as Lost
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            toast.success('Report Generated', {
+                              description: `Report for ${deal.client}'s deal is ready to download`
+                            });
+                          }}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Generate Report
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -180,7 +235,7 @@ export function DealsPipeline({ onNavigate }: DealsPipelineProps) {
                   </div>
                   <div className="text-right">
                     <div className="text-lg text-blue-600 font-semibold">
-                      AED {(deal.value / 1000000).toFixed(2)}M
+                      {formatCurrency(deal.value)}
                     </div>
                   </div>
                 </div>
@@ -207,6 +262,40 @@ export function DealsPipeline({ onNavigate }: DealsPipelineProps) {
           ))
         )}
       </div>
+
+      {/* Delete Deal Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Deal</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this deal? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-lg"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="rounded-lg"
+              onClick={() => {
+                // Add logic to delete the deal
+                toast.success('Deal deleted successfully');
+                setIsDeleteDialogOpen(false);
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

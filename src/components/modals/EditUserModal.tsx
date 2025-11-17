@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
+import { toast } from 'sonner';
 
 interface EditUserModalProps {
   isOpen: boolean;
@@ -70,6 +71,7 @@ export function EditUserModal({ isOpen, onClose, onSubmit, userData }: EditUserM
     }
 
     onSubmit(userData.id, changedFields);
+    toast.success('User updated successfully!');
   };
 
   return (

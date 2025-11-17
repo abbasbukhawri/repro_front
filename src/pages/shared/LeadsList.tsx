@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Plus, Search, Filter, Phone, Mail, Eye, Edit, Trash2, MoreVertical, Upload, Download } from 'lucide-react';
+import { Plus, Search, Filter, Phone, Mail, Eye, Edit, Trash2, MoreVertical, Upload, Download, AlertTriangle } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../../components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../../components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { PageHeader } from '../../components/crm/PageHeader';
 import { AddLeadModal } from '../../components/modals/AddLeadModal';
 import { LogCallModal } from '../../components/modals/LogCallModal';
@@ -173,6 +174,8 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [selectedLeadForAction, setSelectedLeadForAction] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedLeadForDelete, setSelectedLeadForDelete] = useState<any>(null);
   
   // Use CRM context leads or fall back to mock data for display purposes
   const staticLeads = brand === 'real-estate' ? realEstateLeads : businessSetupLeads;
@@ -251,35 +254,53 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
   };
 
   return (
-    <div className="p-8 max-w-[1800px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1800px] mx-auto">
       <PageHeader
         title={brandTitle}
         description={`Manage and track your ${brand === 'real-estate' ? 'property' : 'business setup'} leads effectively`}
         actions={
-          <>
-            <Button variant="outline" className="rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              className="rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50 w-full sm:w-auto"
+              onClick={() => {
+                toast.info('Import Leads', {
+                  description: 'Upload a CSV file to import leads (feature coming soon)'
+                });
+              }}
+            >
               <Upload className="w-4 h-4 mr-2" strokeWidth={1.5} />
-              Import
+              <span className="hidden sm:inline">Import</span>
+              <span className="sm:hidden">Import</span>
             </Button>
-            <Button variant="outline" className="rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50">
+            <Button 
+              variant="outline" 
+              className="rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50 w-full sm:w-auto"
+              onClick={() => {
+                toast.success('Leads Exported!', {
+                  description: 'Your leads have been exported to CSV'
+                });
+              }}
+            >
               <Download className="w-4 h-4 mr-2" strokeWidth={1.5} />
-              Export
+              <span className="hidden sm:inline">Export</span>
+              <span className="sm:hidden">Export</span>
             </Button>
-            <Button className={`rounded-xl ${brandBg}`} onClick={() => setIsAddLeadModalOpen(true)}>
+            <Button className={`rounded-xl ${brandBg} w-full sm:w-auto`} onClick={() => setIsAddLeadModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" strokeWidth={1.5} />
               Add Lead
             </Button>
-          </>
+          </div>
         }
       />
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-3 sm:p-6 mb-4 sm:mb-6">
+        <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400" strokeWidth={1.5} />
             <Input
-              placeholder="Search leads by name, email, phone..."
+              placeholder="Search leads..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 rounded-xl border-gray-300 h-11 text-sm focus:ring-2 focus:ring-blue-500/20"
@@ -297,15 +318,15 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
               <SelectItem value="negotiation">Negotiation</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" className="rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50 h-11" onClick={() => setIsAdvancedFiltersOpen(true)}>
+          <Button variant="outline" className="rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50 h-11 w-full md:w-auto" onClick={() => setIsAdvancedFiltersOpen(true)}>
             <Filter className="w-4 h-4 mr-2" strokeWidth={1.5} />
             More Filters
           </Button>
         </div>
       </div>
 
-      {/* Premium Table */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+      {/* Desktop Table View - Hidden on Mobile */}
+      <div className="hidden lg:block bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
         <Table className="premium-table">
           <TableHeader>
             <TableRow className="bg-gray-50/80 border-b border-gray-200">
@@ -464,7 +485,8 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                         className="cursor-pointer text-red-600"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Delete functionality
+                          setSelectedLeadForDelete(lead);
+                          setIsDeleteDialogOpen(true);
                         }}
                       >
                         <Trash2 className="mr-2 h-4 w-4" strokeWidth={1.5} />
@@ -477,6 +499,162 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Card View - Visible on Tablet and Below */}
+      <div className="lg:hidden space-y-3">
+        {filteredLeads.map((lead) => (
+          <div 
+            key={lead.id} 
+            className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-4 hover:shadow-md transition-all cursor-pointer"
+            onClick={() => {
+              onSelectLead(lead.id);
+              onNavigate(brand === 'real-estate' ? 're-lead-details' : 'bs-lead-details');
+            }}
+          >
+            {/* Header with Avatar and Name */}
+            <div className="flex items-start justify-between mb-3 pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-3 flex-1">
+                <Avatar className="h-12 w-12 ring-2 ring-gray-200">
+                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${lead.name}`} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
+                    {lead.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-gray-900 truncate">{lead.name}</div>
+                  <div className="text-xs text-gray-500">ID: {lead.id}</div>
+                </div>
+              </div>
+              <Badge className={`${getStatusColor(lead.status)} font-medium text-xs px-2 py-1 rounded-lg shrink-0 ml-2`}>
+                {lead.status}
+              </Badge>
+            </div>
+
+            {/* Contact Info */}
+            <div className="space-y-2 mb-3">
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <Phone className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={1.5} />
+                <span className="truncate">{lead.phone}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Mail className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={1.5} />
+                <span className="truncate">{lead.email}</span>
+              </div>
+            </div>
+
+            {/* Requirements/Service Details */}
+            {brand === 'real-estate' ? (
+              <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                <div className="text-xs text-gray-500 mb-1">Requirements</div>
+                <div className="font-medium text-gray-900 mb-1">{lead.budget || lead.value || 'N/A'}</div>
+                <div className="text-xs text-gray-600">
+                  {lead.propertyType || ''} {lead.location ? `in ${lead.location}` : ''}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                <div className="text-xs text-gray-500 mb-1">Service Details</div>
+                <div className="font-medium text-gray-900 mb-1">{lead.service || 'N/A'}</div>
+                <div className="text-xs text-gray-600">
+                  {lead.jurisdiction || ''} {lead.visas ? `- ${lead.visas} visas` : ''}
+                </div>
+              </div>
+            )}
+
+            {/* Agent/Officer and Last Contact */}
+            <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-5 w-5 ring-1 ring-gray-200">
+                  <AvatarImage src={lead.agentAvatar} />
+                  <AvatarFallback className="text-[10px]">
+                    {lead.agent ? lead.agent.split(' ').map(n => n[0]).join('') : 
+                     lead.officer ? lead.officer.split(' ').map(n => n[0]).join('') : 
+                     lead.assignedTo ? lead.assignedTo.split(' ').map(n => n[0]).join('') : 'NA'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate">{lead.agent || lead.officer || lead.assignedTo || 'Unassigned'}</span>
+              </div>
+              <span className="text-gray-500 shrink-0 ml-2">{lead.lastContact}</span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="flex-1 rounded-xl text-xs h-9"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedLeadForAction({ id: lead.id, name: lead.name });
+                  setIsLogCallModalOpen(true);
+                }}
+              >
+                <Phone className="w-3.5 h-3.5 mr-1.5" strokeWidth={1.5} />
+                Call
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="flex-1 rounded-xl text-xs h-9"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedLeadForAction({ id: lead.id, name: lead.name });
+                  setIsAddNoteModalOpen(true);
+                }}
+              >
+                <Mail className="w-3.5 h-3.5 mr-1.5" strokeWidth={1.5} />
+                Email
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="rounded-xl h-9 px-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-4 w-4" strokeWidth={1.5} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem 
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectLead(lead.id);
+                      onNavigate(brand === 'real-estate' ? 're-lead-details' : 'bs-lead-details');
+                    }}
+                  >
+                    <Eye className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                    View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Edit lead functionality
+                    }}
+                  >
+                    <Edit className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                    Edit Lead
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedLeadForDelete(lead);
+                      setIsDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Modals */}
@@ -507,6 +685,53 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
         }}
         brand={brand}
       />
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Lead
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this lead? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedLeadForDelete && (
+            <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Lead Name:</span>
+                  <span className="font-semibold text-gray-900">{selectedLeadForDelete.name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Email:</span>
+                  <span className="font-semibold text-gray-900">{selectedLeadForDelete.email}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Phone:</span>
+                  <span className="font-semibold text-gray-900">{selectedLeadForDelete.phone}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={() => {
+              setIsDeleteDialogOpen(false);
+              toast.success('Lead Deleted!', {
+                description: `${selectedLeadForDelete?.name} has been removed from your leads.`
+              });
+            }}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Lead
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

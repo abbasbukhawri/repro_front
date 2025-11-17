@@ -8,6 +8,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { useState } from 'react';
+import { SearchDropdown } from './SearchDropdown';
+import { HelpCenterModal } from '../modals/HelpCenterModal';
 
 interface TopBarProps {
   onNavigate: (page: string) => void;
@@ -15,6 +18,8 @@ interface TopBarProps {
 }
 
 export function TopBar({ onNavigate, onMenuClick }: TopBarProps) {
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
   return (
     <header className="fixed top-0 right-0 left-0 lg:left-64 h-16 bg-white border-b border-gray-200/60 z-30 backdrop-blur-sm bg-white/80">
       <div className="h-full px-4 lg:px-8 flex items-center justify-between gap-4">
@@ -35,36 +40,23 @@ export function TopBar({ onNavigate, onMenuClick }: TopBarProps) {
 
         {/* Search */}
         <div className="hidden md:flex flex-1 max-w-2xl">
-          <button
-            onClick={() => onNavigate('search')}
-            className="w-full flex items-center gap-3 px-4 py-2.5 bg-gray-50/80 border border-gray-200/60 rounded-xl hover:bg-gray-100/80 hover:border-gray-300 transition-all duration-200 group"
-          >
-            <Search className="w-[18px] h-[18px] text-gray-400 group-hover:text-gray-600 transition-colors" strokeWidth={1.5} />
-            <span className="text-sm text-gray-500 font-normal hidden lg:inline">Search leads, properties, tasks...</span>
-            <span className="text-sm text-gray-500 font-normal lg:hidden">Search...</span>
-            <div className="ml-auto hidden lg:flex items-center gap-1">
-              <kbd className="px-2 py-1 text-[11px] font-semibold bg-white border border-gray-200 rounded-md text-gray-500 shadow-sm">
-                ⌘
-              </kbd>
-              <kbd className="px-2 py-1 text-[11px] font-semibold bg-white border border-gray-200 rounded-md text-gray-500 shadow-sm">
-                K
-              </kbd>
-            </div>
-          </button>
+          <SearchDropdown
+            onNavigate={(page: string, id?: string) => {
+              onNavigate(page);
+            }}
+          />
         </div>
 
         {/* Right Section */}
         <div className="flex items-center gap-1 lg:gap-2">
-          {/* Search Icon (Mobile) */}
-          <button
-            onClick={() => onNavigate('search')}
-            className="md:hidden p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200"
-          >
-            <Search className="w-[18px] h-[18px] text-gray-600" strokeWidth={1.5} />
-          </button>
+          {/* Search Icon (Mobile) - placeholder for future mobile search */}
+          <div className="md:hidden p-2.5 rounded-xl">
+            <Search className="w-[18px] h-[18px] text-gray-400" strokeWidth={1.5} />
+          </div>
 
           {/* Help */}
-          <button 
+          <button
+            onClick={() => setIsHelpOpen(true)}
             className="hidden lg:block p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
             title="Help & Support"
           >
@@ -120,6 +112,9 @@ export function TopBar({ onNavigate, onMenuClick }: TopBarProps) {
           </DropdownMenu>
         </div>
       </div>
+      
+      {/* Modals */}
+      <HelpCenterModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </header>
   );
 }

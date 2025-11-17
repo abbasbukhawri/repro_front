@@ -159,7 +159,7 @@ export function CallLogs({ brand, onNavigate }: CallLogsProps) {
   };
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
       <PageHeader
         title="Call Logs"
         description="View call history with recordings and transcripts"

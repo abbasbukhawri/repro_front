@@ -6,6 +6,7 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { toast } from 'sonner';
 
 interface EditLeadModalProps {
   isOpen: boolean;
@@ -50,6 +51,7 @@ export function EditLeadModal({ isOpen, onClose, onSubmit, brand, leadData }: Ed
     }
     
     onSubmit(changedFields);
+    toast.success('Lead details updated successfully!');
   };
 
   return (

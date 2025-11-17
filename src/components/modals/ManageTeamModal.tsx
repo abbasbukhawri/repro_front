@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { toast } from 'sonner';
 
 interface ManageTeamModalProps {
   isOpen: boolean;
@@ -84,10 +85,12 @@ export function ManageTeamModal({
     }
 
     onUpdate(teamData.id, changedFields);
+    toast.success('Team updated successfully!');
   };
 
   const handleDelete = () => {
     onDelete(teamData.id);
+    toast.success('Team deleted successfully!');
     setShowDeleteConfirm(false);
     onClose();
   };

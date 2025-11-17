@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Badge } from '../../components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
+import { useSettings } from '../../contexts/SettingsContext';
 
 interface RealEstateDashboardProps {
   onNavigate: (page: string) => void;
@@ -29,11 +30,11 @@ const sourceData = [
 ];
 
 const agentPerformance = [
-  { name: 'Sarah Johnson', deals: 12, value: 'AED 15.2M', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah', change: '+15%' },
-  { name: 'Michael Chen', deals: 10, value: 'AED 12.8M', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=michael', change: '+12%' },
-  { name: 'Emma Williams', deals: 9, value: 'AED 11.5M', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=emma', change: '+8%' },
-  { name: 'James Brown', deals: 8, value: 'AED 10.2M', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=james', change: '+5%' },
-  { name: 'Lisa Anderson', deals: 7, value: 'AED 9.1M', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lisa', change: '+3%' },
+  { name: 'Sarah Johnson', deals: 12, value: 15200000, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah', change: '+15%' },
+  { name: 'Michael Chen', deals: 10, value: 12800000, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=michael', change: '+12%' },
+  { name: 'Emma Williams', deals: 9, value: 11500000, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=emma', change: '+8%' },
+  { name: 'James Brown', deals: 8, value: 10200000, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=james', change: '+5%' },
+  { name: 'Lisa Anderson', deals: 7, value: 9100000, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lisa', change: '+3%' },
 ];
 
 const recentActivities = [
@@ -45,6 +46,8 @@ const recentActivities = [
 ];
 
 export function RealEstateDashboard({ onNavigate }: RealEstateDashboardProps) {
+  const { formatCurrency } = useSettings();
+
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-[1800px] mx-auto">
       <PageHeader
@@ -99,7 +102,7 @@ export function RealEstateDashboard({ onNavigate }: RealEstateDashboardProps) {
         <KPICard
           title="Deals in Pipeline"
           value={45}
-          change="AED 58.5M"
+          change={`${formatCurrency(58500000)}`}
           icon={TrendingUp}
           color="amber"
           onClick={() => onNavigate('re-pipeline')}
@@ -115,7 +118,7 @@ export function RealEstateDashboard({ onNavigate }: RealEstateDashboardProps) {
             </div>
             <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Revenue MTD</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">AED 38.9M</p>
+          <p className="text-2xl font-bold text-gray-900">{formatCurrency(38900000)}</p>
           <p className="text-xs text-emerald-600 mt-1 flex items-center">
             <TrendingUp className="w-3 h-3 mr-1" strokeWidth={2} />
             +18% vs last month
@@ -299,7 +302,7 @@ export function RealEstateDashboard({ onNavigate }: RealEstateDashboardProps) {
                     <div className="text-xs text-gray-500">{agent.deals} deals closed</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-sm text-gray-900">{agent.value}</div>
+                    <div className="font-bold text-sm text-gray-900">{formatCurrency(agent.value)}</div>
                     <Badge className="bg-green-50 text-green-700 border-green-200 text-xs mt-1">
                       {agent.change}
                     </Badge>

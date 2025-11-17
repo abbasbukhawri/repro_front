@@ -121,6 +121,7 @@ export function PropertiesList({ onNavigate, onSelectProperty }: PropertiesListP
               variant={viewMode === 'list' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('list')}
+              className="hidden md:flex"
             >
               <List className="w-4 h-4" />
             </Button>

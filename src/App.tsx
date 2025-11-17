@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { CRMProvider } from './contexts/CRMContext';
 import { BrandingProvider } from './contexts/BrandingContext';
+import { SettingsProvider } from './contexts/SettingsContext';
+import { Toaster } from './components/ui/sonner';
 import { Sidebar } from './components/layout/Sidebar';
 import { MobileSidebar } from './components/layout/MobileSidebar';
 import { TopBar } from './components/layout/TopBar';
@@ -28,6 +30,7 @@ import { TeamManagement } from './pages/admin/TeamManagement';
 import { Settings } from './pages/admin/Settings';
 import { ActivityLog } from './pages/shared/ActivityLog';
 import { Reports } from './pages/shared/Reports';
+import { ProfilePage } from './pages/shared/ProfilePage';
 
 export type BrandType = 'real-estate' | 'business-setup';
 
@@ -107,6 +110,8 @@ export default function App() {
         return <EmailLogs brand={selectedBrand} onNavigate={setCurrentPage} />;
       case 'activity':
         return <ActivityLog brand={selectedBrand} onNavigate={setCurrentPage} />;
+      case 'profile':
+        return <ProfilePage onNavigate={setCurrentPage} />;
 
       // Admin Pages
       case 'users':
@@ -126,35 +131,52 @@ export default function App() {
   return (
     <CRMProvider>
       <BrandingProvider>
-        <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
-          {/* Desktop Sidebar */}
-          <Sidebar 
-            currentPage={currentPage} 
-            onNavigate={setCurrentPage}
-            selectedBrand={selectedBrand}
-            onBrandChange={setSelectedBrand}
-          />
-
-          {/* Mobile Sidebar */}
-          <MobileSidebar
-            isOpen={isMobileSidebarOpen}
-            onClose={() => setIsMobileSidebarOpen(false)}
-            currentPage={currentPage}
-            onNavigate={setCurrentPage}
-            selectedBrand={selectedBrand}
-            onBrandChange={setSelectedBrand}
-          />
-
-          <div className="lg:ml-64">
-            <TopBar 
+        <SettingsProvider>
+          <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+            {/* Desktop Sidebar */}
+            <Sidebar 
+              currentPage={currentPage} 
               onNavigate={setCurrentPage}
-              onMenuClick={() => setIsMobileSidebarOpen(true)}
+              selectedBrand={selectedBrand}
+              onBrandChange={setSelectedBrand}
             />
-            <main className="pt-16">
-              {renderPage()}
-            </main>
+
+            {/* Mobile Sidebar */}
+            <MobileSidebar
+              isOpen={isMobileSidebarOpen}
+              onClose={() => setIsMobileSidebarOpen(false)}
+              currentPage={currentPage}
+              onNavigate={setCurrentPage}
+              selectedBrand={selectedBrand}
+              onBrandChange={setSelectedBrand}
+            />
+
+            <div className="lg:ml-64">
+              <TopBar 
+                onNavigate={setCurrentPage}
+                onMenuClick={() => setIsMobileSidebarOpen(true)}
+              />
+              <main className="pt-16">
+                {renderPage()}
+              </main>
+            </div>
+
+            {/* Toast Notifications - Top Right */}
+            <Toaster 
+              position="top-right" 
+              closeButton
+              duration={4000}
+              toastOptions={{
+                style: {
+                  background: 'white',
+                  color: '#1f2937',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                },
+              }}
+            />
           </div>
-        </div>
+        </SettingsProvider>
       </BrandingProvider>
     </CRMProvider>
   );

@@ -171,7 +171,7 @@ export function LeadDetails({ brand, leadId, onNavigate }: LeadDetailsProps) {
   };
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
       <PageHeader
         breadcrumbs={[
           { label: brand === 'real-estate' ? 'Real Estate Leads' : 'Business Setup Inquiries', onClick: () => onNavigate(brand === 'real-estate' ? 're-leads' : 'bs-leads') },

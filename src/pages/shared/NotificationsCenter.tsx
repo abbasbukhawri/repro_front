@@ -29,7 +29,7 @@ export function NotificationsCenter({ onNavigate }: NotificationsCenterProps) {
   };
 
   return (
-    <div className="p-6 max-w-[1000px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1000px] mx-auto">
       <PageHeader
         title="Notifications"
         description="Stay updated with your latest activities"
