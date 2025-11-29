@@ -275,7 +275,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   </Label>
                   <Select
                     value={isEditing ? editedData.currency : profileData.currency}
-                    onValueChange={(value) => handleChange('currency', value)}
+                    onValueChange={(value: string) => handleChange('currency', value)}
                     disabled={!isEditing}
                   >
                     <SelectTrigger>
@@ -302,7 +302,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   </Label>
                   <Select
                     value={isEditing ? editedData.timezone : profileData.timezone}
-                    onValueChange={(value) => handleChange('timezone', value)}
+                    onValueChange={(value: string) => handleChange('timezone', value)}
                     disabled={!isEditing}
                   >
                     <SelectTrigger>

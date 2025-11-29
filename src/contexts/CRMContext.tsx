@@ -1,18 +1,33 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-// Types
 export interface Lead {
   id: string;
   name: string;
   email: string;
   phone: string;
-  source: string;
+  source?: string;        // optional in case some leads don't have a source
   status: string;
-  priority: string;
-  value: string;
-  assignedTo: string;
-  createdAt: string;
+  priority?: string;      // optional
+  value?: string;         // budget/value
+  assignedTo?: string;    // agent/officer
+  createdAt?: string;     // optional
   description?: string;
+
+  // Real Estate specific
+  propertyType?: string;
+  location?: string;
+  agent?: string;
+  agentAvatar?: string;
+
+  // Business Setup specific
+  nationality?: string;
+  service?: string;
+  jurisdiction?: string;
+  visas?: string;
+  activity?: string;
+  officer?: string;
+
+  lastContact?: string;    // last contacted time
 }
 
 export interface Property {
@@ -59,12 +74,19 @@ export interface Pledge {
 }
 
 export interface Task {
+  task: string ;
+  entityId: string;
+ 
+  completedAt: Date | string | null;
+  createdAt: Date | null;
+  dueTime: string;
   id: string;
   title: string;
   description: string;
   priority: string;
   status: string;
   dueDate: string;
+  entityType?: "lead" | "inquiry";
   assignedTo: string;
   relatedTo?: string;
   type?: string;
@@ -242,7 +264,12 @@ const initialTasks: Task[] = [
     dueDate: '2025-01-20',
     assignedTo: 'Sarah Johnson',
     relatedTo: 'L001',
-    type: 'Follow-up'
+    type: 'Follow-up',
+    dueTime: '',
+    task: "",
+    entityId: "",
+    completedAt: new Date(),
+    createdAt: new Date(),
   },
 ];
 

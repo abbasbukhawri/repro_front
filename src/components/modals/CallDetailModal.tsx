@@ -317,7 +317,7 @@ Agent: Wonderful! Let me schedule that for you. I'll send you the details via em
                   availableProperties.length > 0 ? (
                     <Select 
                       value={formData.propertyInterest} 
-                      onValueChange={(value) => handleChange('propertyInterest', value)}
+                      onValueChange={(value: any) => handleChange('propertyInterest', value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select property" />

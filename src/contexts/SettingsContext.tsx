@@ -12,7 +12,7 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 const currencySymbols: Record<string, string> = {
-  'AED': 'د.إ',
+  'AED': '  AED',
   'USD': '$',
   'EUR': '€',
   'GBP': '£',

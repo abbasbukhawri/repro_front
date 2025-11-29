@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar'
 import { Calendar } from '../../components/ui/calendar';
 import { RescheduleViewingModal } from '../../components/modals/RescheduleViewingModal';
 import { ViewingDetailsModal } from '../../components/modals/ViewingDetailsModal';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { useState } from 'react';
 
 interface ViewingsPageProps {

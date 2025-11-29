@@ -8,7 +8,7 @@ import { Badge } from '../../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { useCRM } from '../../contexts/CRMContext';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { Checkbox } from '../../components/ui/checkbox';
 
 interface TasksPageProps {
@@ -23,25 +23,29 @@ export function TasksPage({ brand, onNavigate }: TasksPageProps) {
     ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600' 
     : 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600';
 
-  const handleAddTask = (data: any) => {
-    addTask({
-      task: data.task,
-      dueDate: data.dueDate,
-      dueTime: data.dueTime,
-      priority: data.priority,
-      assignedTo: data.assignedTo,
-      description: data.description,
-      status: 'Pending',
-      entityType: brand === 'real-estate' ? 'lead' : 'inquiry',
-      entityId: data.entityName || 'General',
-      createdAt: new Date().toISOString(),
-      completedAt: null
-    });
-    setIsAddTaskModalOpen(false);
-    toast.success('Task created successfully!', {
-      description: `${data.task} has been added to your tasks.`
-    });
-  };
+ const handleAddTask = (data: any) => {
+  addTask({
+    title: data.task, // <-- REQUIRED
+    task: data.task,
+    dueDate: data.dueDate,
+    dueTime: data.dueTime,
+    priority: data.priority,
+    assignedTo: data.assignedTo,
+    description: data.description,
+    status: "Pending",
+    entityType: brand === "real-estate" ? "lead" : "inquiry",
+    entityId: data.entityName || "General",
+    createdAt: new Date(),
+    completedAt: null,
+  });
+
+  setIsAddTaskModalOpen(false);
+
+  toast.success("Task created successfully!", {
+    description: `${data.task} has been added to your tasks.`,
+  });
+};
+
 
   const handleToggleTask = (taskId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'Completed' ? 'Pending' : 'Completed';
@@ -208,7 +212,7 @@ export function TasksPage({ brand, onNavigate }: TasksPageProps) {
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => handleDeleteTask(task.id, task.task)}
+                          onClick={() => handleDeleteTask(task.id, task.task ?? 'Untitled task')}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
                         >
                           <Trash2 className="w-4 h-4" />

@@ -131,7 +131,7 @@ export function AddDealModal({ isOpen, onClose, onSubmit }: AddDealModalProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="stage" className="text-sm font-semibold text-gray-700">Pipeline Stage *</Label>
-              <Select value={formData.stage} onValueChange={(value) => handleChange('stage', value)}>
+              <Select value={formData.stage} onValueChange={(value: string) => handleChange('stage', value)}>
                 <SelectTrigger className="rounded-xl border-gray-300 h-11">
                   <SelectValue />
                 </SelectTrigger>
@@ -177,7 +177,7 @@ export function AddDealModal({ isOpen, onClose, onSubmit }: AddDealModalProps) {
           {/* Assigned To */}
           <div className="space-y-2">
             <Label htmlFor="assignedTo" className="text-sm font-semibold text-gray-700">Assigned To *</Label>
-            <Select value={formData.assignedTo} onValueChange={(value) => handleChange('assignedTo', value)}>
+            <Select value={formData.assignedTo} onValueChange={(value: string) => handleChange('assignedTo', value)}>
               <SelectTrigger className="rounded-xl border-gray-300 h-11">
                 <SelectValue />
               </SelectTrigger>

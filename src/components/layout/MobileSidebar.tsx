@@ -1,4 +1,4 @@
-import { X, Home, Users, Building2, Calendar, CheckSquare, Bell, Phone, Mail, BarChart3, Settings, User, Activity, Clock, Briefcase, FileCheck, RefreshCw, UserCog, DollarSign } from 'lucide-react';
+import { X, Home, Users, Building2, Calendar, CheckSquare, Bell, Phone, Mail, BarChart3, Settings, User, Activity, Clock, Briefcase, FileCheck, RefreshCw, UserCog, DollarSign, Contact } from 'lucide-react';
 import type { BrandType } from '../../App';
 import { useBranding } from '../../contexts/BrandingContext';
 
@@ -213,6 +213,7 @@ export function MobileSidebar({ isOpen, onClose, currentPage, onNavigate, select
             <NavItem icon={Mail} label="Email Logs" page="emails" />
             <NavItem icon={Bell} label="Notifications" page="notifications" count={5} />
             <NavItem icon={Activity} label="Activity Log" page="activity" />
+            <NavItem icon={Contact} label="Contacts" page="contacts" count={3} />
           </div>
 
           <SectionTitle>Administration</SectionTitle>

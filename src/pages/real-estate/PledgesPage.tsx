@@ -14,7 +14,7 @@ import { PageHeader } from '../../components/crm/PageHeader';
 import { AddPledgeModal } from '../../components/modals/AddPledgeModal';
 import { useCRM } from '../../contexts/CRMContext';
 import { useSettings } from '../../contexts/SettingsContext';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface PledgesPageProps {
   onNavigate: (page: string) => void;

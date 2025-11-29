@@ -1,5 +1,8 @@
+
 import { useState, useEffect } from 'react';
-import { X, UserCog } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { fetchRoles } from '../../redux/slices/roleSlice';
+import { UserCog } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Input } from '../ui/input';
@@ -11,68 +14,76 @@ import { toast } from 'sonner';
 interface EditUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (userId: number, data: any) => void;
-  userData: any;
+  onSubmit?: (userId: number, data: any) => void;
+  userData?: any;
 }
 
-export function EditUserModal({ isOpen, onClose, onSubmit, userData }: EditUserModalProps) {
+export function EditUserModal({ isOpen, onClose, userData, onSubmit }: EditUserModalProps) {
+  const dispatch = useAppDispatch();
+  const roles = useAppSelector(state => state.role.list);
+
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
-    role: 'Agent',
-    brandAccess: [] as string[],
-    status: 'Active',
+    password: '',
+    password_confirmation: '',
+    role_id: null as number | null,
+    brand_access: 0, // 0 = probiz, 1 = repro, 2 = both
+    status: 0,       // 0 = active, 1 = inactive
   });
 
   useEffect(() => {
-    if (userData) {
-      setFormData({
-        name: userData.name || '',
-        email: userData.email || '',
-        phone: userData.phone || '',
-        role: userData.role || 'Agent',
-        brandAccess: userData.brandAccess || [],
-        status: userData.status || 'Active',
-      });
+    if (isOpen) {
+      dispatch(fetchRoles());
+      if (userData) {
+        setFormData({
+          first_name: userData.first_name || '',
+          last_name: userData.last_name || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          password: '',
+          password_confirmation: '',
+          role_id: userData.role?.id || null,
+          brand_access: userData.brand_access ?? 0,
+          status: userData.status === 'inactive' ? 1 : 0,
+        });
+      }
     }
-  }, [userData, isOpen]);
+  }, [isOpen, userData, dispatch]);
 
   const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleBrandAccessToggle = (brand: string) => {
-    setFormData(prev => ({
-      ...prev,
-      brandAccess: prev.brandAccess.includes(brand)
-        ? prev.brandAccess.filter(b => b !== brand)
-        : [...prev.brandAccess, brand]
-    }));
+  const handleBrandSelection = (value: number) => {
+    setFormData(prev => ({ ...prev, brand_access: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Only submit changed fields
-    const changedFields: any = {};
-    Object.keys(formData).forEach(key => {
-      if (JSON.stringify(formData[key as keyof typeof formData]) !== JSON.stringify(userData?.[key])) {
-        changedFields[key] = formData[key as keyof typeof formData];
-      }
-    });
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!userData?.id) return;
 
-    if (Object.keys(changedFields).length === 0) {
-      onClose();
-      return;
-    }
-
-    onSubmit(userData.id, changedFields);
-    toast.success('User updated successfully!');
+  // Start with original user data
+  const payload: any = {
+    first_name: formData.first_name || userData.first_name,
+    last_name: formData.last_name || userData.last_name,
+    email: formData.email || userData.email,
+    phone: formData.phone || userData.phone,
+    brand_access: formData.brand_access ?? userData.brand_access,
+    status: formData.status ?? (userData.status === 'inactive' ? 1 : 0),
+    role_id: formData.role_id ?? userData.role?.id,
   };
+
+  // Include password only if changed
+  if (formData.password) payload.password = formData.password;
+  if (formData.password_confirmation) payload.password_confirmation = formData.password_confirmation;
+
+  onSubmit?.(userData.id, payload); // id stays outside
+
+  onClose();
+};
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -84,7 +95,7 @@ export function EditUserModal({ isOpen, onClose, onSubmit, userData }: EditUserM
             </div>
             <div>
               <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>Update user information and permissions. Only changed fields will be saved.</DialogDescription>
+              <DialogDescription>Update user information, role, brand access, and status.</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -92,114 +103,76 @@ export function EditUserModal({ isOpen, onClose, onSubmit, userData }: EditUserM
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="Enter full name"
-                required
-              />
+              <Label htmlFor="first_name">First Name *</Label>
+              <Input id="first_name" value={formData.first_name} onChange={e => handleChange('first_name', e.target.value)} required />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleChange('email', e.target.value)}
-                placeholder="email@example.com"
-                required
-              />
+              <Label htmlFor="last_name">Last Name *</Label>
+              <Input id="last_name" value={formData.last_name} onChange={e => handleChange('last_name', e.target.value)} required />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="+971 50 123 4567"
-              />
+              <Label htmlFor="email">Email *</Label>
+              <Input id="email" value={formData.email} onChange={e => handleChange('email', e.target.value)} required />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Role *</Label>
-              <Select value={formData.role} onValueChange={(value) => handleChange('role', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
+              <Label htmlFor="phone">Phone</Label>
+              <Input id="phone" value={formData.phone} onChange={e => handleChange('phone', e.target.value)} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" value={formData.password} onChange={e => handleChange('password', e.target.value)} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password_confirmation">Confirm Password</Label>
+              <Input id="password_confirmation" type="password" value={formData.password_confirmation} onChange={e => handleChange('password_confirmation', e.target.value)} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Role *</Label>
+              <Select value={formData.role_id !== null ? String(formData.role_id) : undefined} onValueChange={(v: string) => handleChange('role_id', parseInt(v, 10))}>
+                <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Super Admin">Super Admin</SelectItem>
-                  <SelectItem value="Manager">Manager</SelectItem>
-                  <SelectItem value="Agent">Agent</SelectItem>
-                  <SelectItem value="PRO Officer">PRO Officer</SelectItem>
-                  <SelectItem value="Viewer">Viewer</SelectItem>
+                  {roles.map(role => (
+                    <SelectItem key={role.id} value={String(role.id)}>{role.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2 md:col-span-2">
               <Label>Brand Access *</Label>
-              <div className="flex gap-4 mt-2">
-                <div className="flex items-center space-x-2">
+              {[{ label: 'Probiz (Business Setup)', value: 0 }, { label: 'Repro (Real Estate)', value: 1 }, { label: 'Both', value: 2 }].map(brand => (
+                <div className="flex items-center space-x-2" key={brand.value}>
                   <Checkbox
-                    id="re-access-edit"
-                    checked={formData.brandAccess.includes('Real Estate')}
-                    onCheckedChange={() => handleBrandAccessToggle('Real Estate')}
+                    id={`brand-${brand.value}`}
+                    checked={formData.brand_access === brand.value}
+                    onCheckedChange={() => handleBrandSelection(brand.value)}
                   />
-                  <label
-                    htmlFor="re-access-edit"
-                    className="text-sm cursor-pointer"
-                  >
-                    Real Estate (ReproLeaders)
-                  </label>
+                  <label htmlFor={`brand-${brand.value}`} className="text-sm cursor-pointer">{brand.label}</label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="bs-access-edit"
-                    checked={formData.brandAccess.includes('Business Setup')}
-                    onCheckedChange={() => handleBrandAccessToggle('Business Setup')}
-                  />
-                  <label
-                    htmlFor="bs-access-edit"
-                    className="text-sm cursor-pointer"
-                  >
-                    Business Setup (Probiz Corporate)
-                  </label>
-                </div>
-              </div>
-              {formData.brandAccess.length === 0 && (
-                <p className="text-xs text-red-500 mt-1">Please select at least one brand access</p>
-              )}
+              ))}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
+              <Label>Status</Label>
+              <Select value={String(formData.status)} onValueChange={(v: string) => handleChange('status', parseInt(v, 10))}>
+                <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="0">Active</SelectItem>
+                  <SelectItem value="1">Inactive</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              className="bg-blue-600 hover:bg-blue-700"
-              disabled={formData.brandAccess.length === 0}
-            >
-              Save Changes
-            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save Changes</Button>
           </div>
         </form>
       </DialogContent>

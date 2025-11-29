@@ -14,7 +14,7 @@ import { LogCallModal } from '../../components/modals/LogCallModal';
 import { AddNoteModal } from '../../components/modals/AddNoteModal';
 import { AdvancedFiltersModal } from '../../components/modals/AdvancedFiltersModal';
 import { useCRM } from '../../contexts/CRMContext';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 type BrandType = 'real-estate' | 'business-setup';
 
@@ -175,7 +175,29 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [selectedLeadForAction, setSelectedLeadForAction] = useState<{ id: string; name: string } | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedLeadForDelete, setSelectedLeadForDelete] = useState<any>(null);
+const [selectedLeadForDelete, setSelectedLeadForDelete] = useState<typeof displayLeads[0] | null>(null);
+
+
+
+
+// Delete handler
+const handleDeleteLead = () => {
+  if (!selectedLeadForDelete) return;
+  // Remove lead from CRM (replace this with your actual remove function from context)
+  if ("id" in selectedLeadForDelete) {
+    crmLeads.splice(
+      crmLeads.findIndex((l) => l.id === selectedLeadForDelete.id),
+      1
+    );
+  }
+  setIsDeleteDialogOpen(false);
+  setSelectedLeadForDelete(null);
+  toast.success('Lead Deleted!', {
+    description: `${selectedLeadForDelete.name} has been removed from your leads.`
+  });
+};
+
+
   
   // Use CRM context leads or fall back to mock data for display purposes
   const staticLeads = brand === 'real-estate' ? realEstateLeads : businessSetupLeads;
@@ -388,19 +410,23 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                   <>
                     <TableCell className="py-4">
                       <div className="space-y-1">
-                        <div className="text-sm font-medium text-gray-900">{lead.budget || lead.value || 'N/A'}</div>
-                        <div className="text-xs text-gray-600">{lead.propertyType || ''} {lead.location ? `in ${lead.location}` : ''}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {('budget' in lead ? lead.budget : ('value' in lead ? (lead as any).value : 'N/A')) || 'N/A'}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {('propertyType' in lead ? lead.propertyType : '')} {('location' in lead && lead.location) ? `in ${lead.location}` : ''}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="py-4">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-7 w-7 ring-2 ring-gray-200">
-                          <AvatarImage src={lead.agentAvatar} />
+                          <AvatarImage src={('agentAvatar' in lead ? lead.agentAvatar : undefined)} />
                           <AvatarFallback className="text-xs">
-                            {lead.agent ? lead.agent.split(' ').map(n => n[0]).join('') : lead.assignedTo ? lead.assignedTo.split(' ').map(n => n[0]).join('') : 'NA'}
+                            {("agent" in lead && lead.agent) ? lead.agent.split(' ').map(n => n[0]).join('') : ("assignedTo" in lead && lead.assignedTo) ? lead.assignedTo.split(' ').map(n => n[0]).join('') : 'NA'}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-sm text-gray-700">{lead.agent || lead.assignedTo || 'Unassigned'}</span>
+                        <span className="text-sm text-gray-700">{("agent" in lead && lead.agent) ? lead.agent : ("assignedTo" in lead && lead.assignedTo) ? lead.assignedTo : 'Unassigned'}</span>
                       </div>
                     </TableCell>
                   </>
@@ -408,12 +434,14 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                   <>
                     <TableCell className="py-4">
                       <div className="space-y-1">
-                        <div className="text-sm font-medium text-gray-900">{lead.service || 'N/A'}</div>
-                        <div className="text-xs text-gray-600">{lead.jurisdiction || ''} {lead.visas ? `- ${lead.visas} visas` : ''}</div>
+                        <div className="text-sm font-medium text-gray-900">{('service' in lead ? lead.service : 'N/A')}</div>
+                        <div className="text-xs text-gray-600">
+                          {('jurisdiction' in lead ? lead.jurisdiction : '')} {('visas' in lead && (lead as any).visas) ? `- ${(lead as any).visas} visas` : ''}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="py-4">
-                      <div className="text-sm text-gray-700">{lead.officer || lead.assignedTo || 'Unassigned'}</div>
+                      <div className="text-sm text-gray-700">{("officer" in lead && lead.officer) ? lead.officer : ("assignedTo" in lead && lead.assignedTo) ? lead.assignedTo : 'Unassigned'}</div>
                     </TableCell>
                   </>
                 )}
@@ -432,7 +460,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                         variant="ghost" 
                         size="sm" 
                         className="h-8 w-8 p-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e: { stopPropagation: () => any; }) => e.stopPropagation()}
                       >
                         <MoreVertical className="h-4 w-4" strokeWidth={1.5} />
                       </Button>
@@ -440,7 +468,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem 
                         className="cursor-pointer"
-                        onClick={(e) => {
+                        onClick={(e: { stopPropagation: () => void; }) => {
                           e.stopPropagation();
                           onSelectLead(lead.id);
                           onNavigate(brand === 'real-estate' ? 're-lead-details' : 'bs-lead-details');
@@ -451,7 +479,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         className="cursor-pointer"
-                        onClick={(e) => {
+                        onClick={(e: { stopPropagation: () => void; }) => {
                           e.stopPropagation();
                           // Edit lead functionality
                         }}
@@ -461,7 +489,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         className="cursor-pointer"
-                        onClick={(e) => {
+                        onClick={(e: { stopPropagation: () => void; }) => {
                           e.stopPropagation();
                           setSelectedLeadForAction({ id: lead.id, name: lead.name });
                           setIsLogCallModalOpen(true);
@@ -472,7 +500,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         className="cursor-pointer"
-                        onClick={(e) => {
+                        onClick={(e: { stopPropagation: () => void; }) => {
                           e.stopPropagation();
                           setSelectedLeadForAction({ id: lead.id, name: lead.name });
                           setIsAddNoteModalOpen(true);
@@ -483,7 +511,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         className="cursor-pointer text-red-600"
-                        onClick={(e) => {
+                        onClick={(e: { stopPropagation: () => void; }) => {
                           e.stopPropagation();
                           setSelectedLeadForDelete(lead);
                           setIsDeleteDialogOpen(true);
@@ -547,17 +575,19 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
             {brand === 'real-estate' ? (
               <div className="bg-gray-50 rounded-lg p-3 mb-3">
                 <div className="text-xs text-gray-500 mb-1">Requirements</div>
-                <div className="font-medium text-gray-900 mb-1">{lead.budget || lead.value || 'N/A'}</div>
+                <div className="font-medium text-gray-900 mb-1">
+                  {('budget' in lead ? lead.budget : ('value' in lead ? (lead as any).value : 'N/A')) || 'N/A'}
+                </div>
                 <div className="text-xs text-gray-600">
-                  {lead.propertyType || ''} {lead.location ? `in ${lead.location}` : ''}
+                  {('propertyType' in lead ? lead.propertyType : '')} {('location' in lead && lead.location) ? `in ${lead.location}` : ''}
                 </div>
               </div>
             ) : (
               <div className="bg-gray-50 rounded-lg p-3 mb-3">
                 <div className="text-xs text-gray-500 mb-1">Service Details</div>
-                <div className="font-medium text-gray-900 mb-1">{lead.service || 'N/A'}</div>
+                <div className="font-medium text-gray-900 mb-1">{('service' in lead ? lead.service : 'N/A')}</div>
                 <div className="text-xs text-gray-600">
-                  {lead.jurisdiction || ''} {lead.visas ? `- ${lead.visas} visas` : ''}
+                  {('jurisdiction' in lead ? lead.jurisdiction : '')} {('visas' in lead && (lead as any).visas) ? `- ${(lead as any).visas} visas` : ''}
                 </div>
               </div>
             )}
@@ -566,14 +596,12 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
             <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
               <div className="flex items-center gap-2">
                 <Avatar className="h-5 w-5 ring-1 ring-gray-200">
-                  <AvatarImage src={lead.agentAvatar} />
+                  <AvatarImage src={('agentAvatar' in lead ? lead.agentAvatar : undefined)} />
                   <AvatarFallback className="text-[10px]">
-                    {lead.agent ? lead.agent.split(' ').map(n => n[0]).join('') : 
-                     lead.officer ? lead.officer.split(' ').map(n => n[0]).join('') : 
-                     lead.assignedTo ? lead.assignedTo.split(' ').map(n => n[0]).join('') : 'NA'}
+                    {("agent" in lead && lead.agent) ? lead.agent.split(' ').map(n => n[0]).join('') : ("officer" in lead && lead.officer) ? lead.officer.split(' ').map(n => n[0]).join('') : ("assignedTo" in lead && lead.assignedTo) ? lead.assignedTo.split(' ').map(n => n[0]).join('') : 'NA'}
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate">{lead.agent || lead.officer || lead.assignedTo || 'Unassigned'}</span>
+                <span className="truncate">{("agent" in lead && lead.agent) ? lead.agent : ("officer" in lead && lead.officer) ? lead.officer : ("assignedTo" in lead && lead.assignedTo) ? lead.assignedTo : 'Unassigned'}</span>
               </div>
               <span className="text-gray-500 shrink-0 ml-2">{lead.lastContact}</span>
             </div>
@@ -584,7 +612,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                 size="sm" 
                 variant="outline" 
                 className="flex-1 rounded-xl text-xs h-9"
-                onClick={(e) => {
+                onClick={(e: { stopPropagation: () => void; }) => {
                   e.stopPropagation();
                   setSelectedLeadForAction({ id: lead.id, name: lead.name });
                   setIsLogCallModalOpen(true);
@@ -597,7 +625,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                 size="sm" 
                 variant="outline" 
                 className="flex-1 rounded-xl text-xs h-9"
-                onClick={(e) => {
+                onClick={(e: { stopPropagation: () => void; }) => {
                   e.stopPropagation();
                   setSelectedLeadForAction({ id: lead.id, name: lead.name });
                   setIsAddNoteModalOpen(true);
@@ -612,7 +640,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                     size="sm" 
                     variant="outline" 
                     className="rounded-xl h-9 px-3"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e: { stopPropagation: () => any; }) => e.stopPropagation()}
                   >
                     <MoreVertical className="h-4 w-4" strokeWidth={1.5} />
                   </Button>
@@ -620,7 +648,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem 
                     className="cursor-pointer"
-                    onClick={(e) => {
+                    onClick={(e: { stopPropagation: () => void; }) => {
                       e.stopPropagation();
                       onSelectLead(lead.id);
                       onNavigate(brand === 'real-estate' ? 're-lead-details' : 'bs-lead-details');
@@ -631,7 +659,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="cursor-pointer"
-                    onClick={(e) => {
+                    onClick={(e: { stopPropagation: () => void; }) => {
                       e.stopPropagation();
                       // Edit lead functionality
                     }}
@@ -641,7 +669,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="cursor-pointer text-red-600"
-                    onClick={(e) => {
+                    onClick={(e: { stopPropagation: () => void; }) => {
                       e.stopPropagation();
                       setSelectedLeadForDelete(lead);
                       setIsDeleteDialogOpen(true);
@@ -716,20 +744,16 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
             </div>
           )}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={() => {
-              setIsDeleteDialogOpen(false);
-              toast.success('Lead Deleted!', {
-                description: `${selectedLeadForDelete?.name} has been removed from your leads.`
-              });
-            }}>
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete Lead
-            </Button>
-          </DialogFooter>
+         <DialogFooter>
+  <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+    Cancel
+  </Button>
+  <Button variant="destructive" onClick={handleDeleteLead}>
+    <Trash2 className="w-4 h-4 mr-2" />
+    Delete Lead
+  </Button>
+</DialogFooter>
+
         </DialogContent>
       </Dialog>
     </div>

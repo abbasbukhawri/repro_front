@@ -31,6 +31,9 @@ import { Settings } from './pages/admin/Settings';
 import { ActivityLog } from './pages/shared/ActivityLog';
 import { Reports } from './pages/shared/Reports';
 import { ProfilePage } from './pages/shared/ProfilePage';
+import { Provider } from 'react-redux';
+import { store } from './redux/store';
+import { ContactManagement } from './pages/shared/ContactManagement';
 
 export type BrandType = 'real-estate' | 'business-setup';
 
@@ -112,6 +115,8 @@ export default function App() {
         return <ActivityLog brand={selectedBrand} onNavigate={setCurrentPage} />;
       case 'profile':
         return <ProfilePage onNavigate={setCurrentPage} />;
+        case 'contacts':
+        return <ContactManagement onNavigate={setCurrentPage}  />;
 
       // Admin Pages
       case 'users':
@@ -129,6 +134,7 @@ export default function App() {
   };
 
   return (
+    <Provider  store={store}  >
     <CRMProvider>
       <BrandingProvider>
         <SettingsProvider>
@@ -162,22 +168,11 @@ export default function App() {
             </div>
 
             {/* Toast Notifications - Top Right */}
-            <Toaster 
-              position="top-right" 
-              closeButton
-              duration={4000}
-              toastOptions={{
-                style: {
-                  background: 'white',
-                  color: '#1f2937',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-                },
-              }}
-            />
+          
           </div>
         </SettingsProvider>
       </BrandingProvider>
     </CRMProvider>
+    </Provider>
   );
 }
