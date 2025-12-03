@@ -1,7 +1,7 @@
-const API_BASE = "https://0130b6a577ce.ngrok-free.app";
+const API_BASE = "https://f51f11434f7b.ngrok-free.app";
 
 function getToken() {
-  return "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxMCwiZXhwIjoxNzY0NDA3NDA5fQ.RHLiFJyk8f1h0aCzLkFgNIkgDN8mHn5QsxI2L0_kyQc";
+  return "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxMCwiZXhwIjoxNzY0ODQ0MzE4fQ.l9ok3sHJUEcBqpiFYIlVdEZgkckyGsQ4IkbKwkAKwf4";
 }
 
 export async function getRequest<T>(path: string): Promise<T> {
@@ -54,6 +54,7 @@ export async function patchRequest<T>(path: string, body?: unknown): Promise<T> 
   const res = await fetch(`${API_BASE}${path}`, {
     method: "PATCH",
     headers: {
+      Accept: "application/json",
       "Content-Type": "application/json",
       "ngrok-skip-browser-warning": "true",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

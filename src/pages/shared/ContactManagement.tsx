@@ -102,10 +102,11 @@ setDeleteModalOpen(true);
 };
 
 const brandAccessMap: Record<string, string> = {
-  bs: "BS",
+  probiz: "BS",
   repro: "RE",
   both: "BS + RE",
 };
+
 return ( <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
 <PageHeader
 title="Contact Management"
@@ -150,7 +151,7 @@ Add Contact </Button>
                 {/* Brand Access */}
                 <div className="text-center">
                   <div className="text-xs text-gray-600 mb-1">Brand Access</div>
-                  <Badge className="bg-blue-100 text-blue-700">{brandAccessMap[contact.brand_access] || "N/A"}</Badge>
+                  <Badge className="bg-blue-100 text-blue-700">{brandAccessMap[contact.brand_access]}</Badge>
                 </div>
 
                 {/* Status */}

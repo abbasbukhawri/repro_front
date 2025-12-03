@@ -1,148 +1,112 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { toast } from 'sonner';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { Lead, updateLead } from '../../redux/slices/leadSlice';
 
 interface EditLeadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  leadData?: Lead;
   brand: 'real-estate' | 'business-setup';
-  leadData?: any;
 }
 
-export function EditLeadModal({ isOpen, onClose, onSubmit, brand, leadData }: EditLeadModalProps) {
-  const [formData, setFormData] = useState<any>({});
+export function EditLeadModal({ isOpen, onClose, leadData, brand }: EditLeadModalProps) {
+  const dispatch = useAppDispatch();
+  const { list: contacts } = useAppSelector((state) => state.contact);
+  const { list: users } = useAppSelector((state) => state.user);
 
-  // Initialize form data when modal opens or leadData changes
+  const [formData, setFormData] = useState<Partial<Lead>>({});
+
   useEffect(() => {
-    if (leadData) {
-      setFormData(leadData);
+    if (leadData && isOpen) {
+      setFormData({
+        ...leadData,
+        preferred_location_ids: leadData.preferred_location_ids || [],
+        property_ids: leadData.property_ids || [],
+      });
     }
   }, [leadData, isOpen]);
 
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleChange = (field: keyof Lead, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    // Only submit fields that have changed
-    const changedFields: any = {};
-    Object.keys(formData).forEach(key => {
-      if (formData[key] !== leadData?.[key]) {
-        changedFields[key] = formData[key];
+const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  if (!leadData) return;
+
+  const payload: Partial<Lead> = {};
+
+  Object.keys(formData).forEach(key => {
+    const k = key as keyof Lead;
+    const value = formData[k];
+
+    if (value !== leadData[k]) {
+      if (k === 'notes_attributes' && typeof value === 'string') {
+        payload.notes_attributes = [{ body: value }];
+      } else {
+        (payload[k] as Lead[typeof k]) = value as Lead[typeof k];
       }
-    });
-    
-    // If no fields changed, just close modal
-    if (Object.keys(changedFields).length === 0) {
-      onClose();
-      return;
     }
-    
-    onSubmit(changedFields);
-    toast.success('Lead details updated successfully!');
-  };
+  });
+
+  if (Object.keys(payload).length === 0) {
+    onClose();
+    return;
+  }
+
+  // ✅ Wrap payload under "lead"
+  dispatch(updateLead({ id: leadData.id, data: { lead: payload } }));
+  toast.success('Lead details updated successfully!');
+  onClose();
+};
+
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Lead Details</DialogTitle>
-          <DialogDescription>Update the lead information below. Only changed fields will be saved.</DialogDescription>
+          <DialogDescription>
+            Update lead information. Only changed fields will be saved.
+          </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
-              <Input
-                id="name"
-                name="name"
-                value={formData.name || ''}
-                onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="Enter full name"
-                required
-              />
-            </div>
 
+            {/* Contact */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email || ''}
-                onChange={(e) => handleChange('email', e.target.value)}
-                placeholder="email@example.com"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number *</Label>
-              <Input
-                id="phone"
-                name="phone"
-                value={formData.phone || ''}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="+971 50 123 4567"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
-              <Select 
-                value={formData.status || 'new'} 
-                onValueChange={(value) => handleChange('status', value)}
+              <Label>Contact *</Label>
+              <Select
+                value={formData.contact_id || ''}
+                onValueChange={(value: any) => handleChange('contact_id', Number(value))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="Select contact" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="contacted">Contacted</SelectItem>
-                  <SelectItem value="qualified">Qualified</SelectItem>
-                  <SelectItem value="negotiation">Negotiation</SelectItem>
-                  <SelectItem value="closed-won">Closed Won</SelectItem>
-                  <SelectItem value="closed-lost">Closed Lost</SelectItem>
+                  {contacts.map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.full_name} ({c.phone || c.email})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Source */}
             <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select 
-                value={formData.priority || 'medium'} 
-                onValueChange={(value) => handleChange('priority', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="source">Source</Label>
-              <Select 
-                value={formData.source || 'website'} 
-                onValueChange={(value) => handleChange('source', value)}
+              <Label>Source *</Label>
+              <Select
+                value={formData.source || ''}
+                onValueChange={(value: any) => handleChange('source', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select source" />
@@ -150,146 +114,160 @@ export function EditLeadModal({ isOpen, onClose, onSubmit, brand, leadData }: Ed
                 <SelectContent>
                   <SelectItem value="website">Website</SelectItem>
                   <SelectItem value="referral">Referral</SelectItem>
-                  <SelectItem value="social-media">Social Media</SelectItem>
-                  <SelectItem value="direct">Direct</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="social">Social Media</SelectItem>
+                  <SelectItem value="walkin">Walk-in</SelectItem>
+                  <SelectItem value="email">Email Campaign</SelectItem>
+                  <SelectItem value="phone">Phone Inquiry</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {brand === 'real-estate' ? (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="budget">Budget</Label>
-                  <Input
-                    id="budget"
-                    name="budget"
-                    value={formData.budget || ''}
-                    onChange={(e) => handleChange('budget', e.target.value)}
-                    placeholder="e.g., AED 2.5M - 3M"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="propertyType">Property Type</Label>
-                  <Select 
-                    value={formData.propertyType || ''} 
-                    onValueChange={(value) => handleChange('propertyType', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="villa">Villa</SelectItem>
-                      <SelectItem value="apartment">Apartment</SelectItem>
-                      <SelectItem value="townhouse">Townhouse</SelectItem>
-                      <SelectItem value="penthouse">Penthouse</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="location">Preferred Location</Label>
-                  <Input
-                    id="location"
-                    name="location"
-                    value={formData.location || ''}
-                    onChange={(e) => handleChange('location', e.target.value)}
-                    placeholder="e.g., Dubai Hills, Dubai Marina"
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="nationality">Nationality</Label>
-                  <Input
-                    id="nationality"
-                    name="nationality"
-                    value={formData.nationality || ''}
-                    onChange={(e) => handleChange('nationality', e.target.value)}
-                    placeholder="e.g., British, Indian"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="service">Service Required</Label>
-                  <Select 
-                    value={formData.service || ''} 
-                    onValueChange={(value) => handleChange('service', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="company-formation">Company Formation</SelectItem>
-                      <SelectItem value="license-renewal">License Renewal</SelectItem>
-                      <SelectItem value="visa-services">Visa Services</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="jurisdiction">Jurisdiction</Label>
-                  <Select 
-                    value={formData.jurisdiction || ''} 
-                    onValueChange={(value) => handleChange('jurisdiction', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select jurisdiction" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="free-zone">Free Zone</SelectItem>
-                      <SelectItem value="mainland">Mainland</SelectItem>
-                      <SelectItem value="offshore">Offshore</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="visas">Number of Visas</Label>
-                  <Input
-                    id="visas"
-                    name="visas"
-                    type="number"
-                    value={formData.visas || ''}
-                    onChange={(e) => handleChange('visas', e.target.value)}
-                    placeholder="e.g., 3"
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="assignee">Assigned To</Label>
-              <Select 
-                value={formData.assignedTo || 'Sarah Johnson'} 
-                onValueChange={(value) => handleChange('assignedTo', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select assignee" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Sarah Johnson">Sarah Johnson</SelectItem>
-                  <SelectItem value="Michael Chen">Michael Chen</SelectItem>
-                  <SelectItem value="Emma Williams">Emma Williams</SelectItem>
-                  <SelectItem value="James Brown">James Brown</SelectItem>
-                  <SelectItem value="Lisa Anderson">Lisa Anderson</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                value={formData.notes || ''}
-                onChange={(e) => handleChange('notes', e.target.value)}
-                placeholder="Add any additional notes..."
-                rows={4}
+            {/* Budget */}
+            <div className="space-y-2">
+              <Label>Budget Min</Label>
+              <Input
+                type="number"
+                value={formData.budget_min || ''}
+                onChange={e => handleChange('budget_min', Number(e.target.value))}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Budget Max</Label>
+              <Input
+                type="number"
+                value={formData.budget_max || ''}
+                onChange={e => handleChange('budget_max', Number(e.target.value))}
+              />
+            </div>
+
+            {/* Preferred Locations */}
+            <div className="space-y-2 md:col-span-2">
+              <Label>Preferred Locations</Label>
+              <Input
+                placeholder="1,2,3"
+                value={formData.preferred_location_ids?.join(',') || ''}
+                onChange={e =>
+                  handleChange(
+                    'preferred_location_ids',
+                    e.target.value.split(',').map(Number)
+                  )
+                }
+              />
+            </div>
+
+            {/* Properties */}
+            <div className="space-y-2 md:col-span-2">
+              <Label>Property IDs</Label>
+              <Input
+                placeholder="1,2,3"
+                value={formData.property_ids?.join(',') || ''}
+                onChange={e =>
+                  handleChange(
+                    'property_ids',
+                    e.target.value.split(',').map(Number)
+                  )
+                }
+              />
+            </div>
+
+            {/* Status */}
+            <div className="space-y-2">
+              <Label>Status *</Label>
+              <Select
+                value={formData.status || ''}
+                onValueChange={(value: any) => handleChange('status', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new_lead">New</SelectItem>
+                  <SelectItem value="contacted">Contacted</SelectItem>
+                  <SelectItem value="viewing_scheduled">Viewing Scheduled</SelectItem>
+                  <SelectItem value="offer_made">Offer Made</SelectItem>
+                  <SelectItem value="won">Closed Won</SelectItem>
+                  <SelectItem value="lost">Closed Lost</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Assigned To */}
+            <div className="space-y-2">
+              <Label>Assigned To *</Label>
+              <Select
+                value={formData.assigned_to_id || ''}
+                onValueChange={(value: any) => handleChange('assigned_to_id', Number(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Assign agent" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map(u => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.full_name} ({u.role?.name})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Beds */}
+            <div className="space-y-2">
+              <Label>Beds</Label>
+              <Input
+                type="number"
+                value={formData.bed || ''}
+                onChange={e => handleChange('bed', Number(e.target.value))}
+              />
+            </div>
+
+            {/* Baths */}
+            <div className="space-y-2">
+              <Label>Baths</Label>
+              <Input
+                type="number"
+                value={formData.bath || ''}
+                onChange={e => handleChange('bath', Number(e.target.value))}
+              />
+            </div>
+
+            {/* Property Type */}
+            <div className="space-y-2">
+              <Label>Property Type</Label>
+              <Select
+                value={formData.property_type || ''}
+                onValueChange={(value: any) => handleChange('property_type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="apartment">Apartment</SelectItem>
+                  <SelectItem value="house">House</SelectItem>
+                  <SelectItem value="villa">Villa</SelectItem>
+                  <SelectItem value="plot">Plot</SelectItem>
+                  <SelectItem value="commercial">Commercial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Lead Type */}
+            <div className="space-y-2">
+              <Label>Lead Type</Label>
+              <Select
+                value={formData.lead_type || ''}
+                onValueChange={(value: any) => handleChange('lead_type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rent">Rent</SelectItem>
+                  <SelectItem value="sale">Sale</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
