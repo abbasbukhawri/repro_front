@@ -58,6 +58,12 @@ export function AddDealModal({ isOpen, onClose, onSubmit }: AddDealModalProps) {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+
+    const [clientDropdownOpen, setClientDropdownOpen] = useState(false);
+  const [clientSearch, setClientSearch] = useState('');
+  const [assignedDropdownOpen, setAssignedDropdownOpen] = useState(false);
+  const [assignedSearch, setAssignedSearch] = useState('')
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

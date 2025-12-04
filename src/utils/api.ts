@@ -1,7 +1,7 @@
-const API_BASE = "https://f51f11434f7b.ngrok-free.app";
+const API_BASE = "https://e7e0a73930fd.ngrok-free.app";
 
 function getToken() {
-  return "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxMCwiZXhwIjoxNzY0ODQ0MzE4fQ.l9ok3sHJUEcBqpiFYIlVdEZgkckyGsQ4IkbKwkAKwf4";
+  return "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxMCwiZXhwIjoxNzY0OTI2MDU2fQ.kaQM8oYZALFoyyi5xn1uBWxMc-VUpxcjOViBxWJjl9M";
 }
 
 export async function getRequest<T>(path: string): Promise<T> {

@@ -7,19 +7,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { Lead, updateLead } from '../../redux/slices/leadSlice';
+import { MultiSelectDropdown } from '../ui/MultiSelectDropdown';
 
 interface EditLeadModalProps {
   isOpen: boolean;
   onClose: () => void;
   leadData?: Lead;
+  onsubmit?: (data: any) => void;
   brand: 'real-estate' | 'business-setup';
 }
 
 export function EditLeadModal({ isOpen, onClose, leadData, brand }: EditLeadModalProps) {
   const dispatch = useAppDispatch();
-  const { list: contacts } = useAppSelector((state) => state.contact);
-  const { list: users } = useAppSelector((state) => state.user);
 
+  // Redux store data
+  const { list: contacts } = useAppSelector(state => state.contact);
+  const { list: users } = useAppSelector(state => state.user);
+  const { list: properties } = useAppSelector(state => state.property);
+  const { list: locations } = useAppSelector(state => state.location);
+
+  // Form data state
   const [formData, setFormData] = useState<Partial<Lead>>({});
 
   useEffect(() => {
@@ -36,37 +43,71 @@ export function EditLeadModal({ isOpen, onClose, leadData, brand }: EditLeadModa
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (!leadData) return;
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!leadData) return;
 
-  const payload: Partial<Lead> = {};
+    const payload: Partial<Lead> = {};
 
-  Object.keys(formData).forEach(key => {
-    const k = key as keyof Lead;
-    const value = formData[k];
+    Object.keys(formData).forEach(key => {
+      const k = key as keyof Lead;
+      const value = formData[k];
 
-    if (value !== leadData[k]) {
-      if (k === 'notes_attributes' && typeof value === 'string') {
-        payload.notes_attributes = [{ body: value }];
-      } else {
-        (payload[k] as Lead[typeof k]) = value as Lead[typeof k];
+      if (value !== leadData[k]) {
+        if (k === 'notes_attributes' && typeof value === 'string') {
+          payload.notes_attributes = [{ body: value }];
+        } else {
+          (payload[k] as Lead[typeof k]) = value as Lead[typeof k];
+        }
       }
+    });
+
+    if (Object.keys(payload).length === 0) {
+      onClose();
+      return;
     }
-  });
 
-  if (Object.keys(payload).length === 0) {
+    dispatch(updateLead({ id: leadData.id, data: { lead: payload } }));
+    toast.success('Lead details updated successfully!');
     onClose();
-    return;
-  }
+  };
 
-  // ✅ Wrap payload under "lead"
-  dispatch(updateLead({ id: leadData.id, data: { lead: payload } }));
-  toast.success('Lead details updated successfully!');
-  onClose();
-};
+  // Helper function to format property display name
+  const formatPropertyName = (property: any) => {
+    const parts = [];
+    
+    if (property.title) {
+      parts.push(property.title);
+    }
+    
+    if (property.reference) {
+      parts.push(`(${property.reference})`);
+    }
+    
+    if (property.location?.label) {
+      // Extract just the first part of the label
+      const locationLabel = property.location.label.split(',')[0];
+      parts.push(`- ${locationLabel}`);
+    }
+    
+    if (property.property_type) {
+      parts.push(`[${property.property_type.charAt(0).toUpperCase() + property.property_type.slice(1)}]`);
+    }
+    
+    return parts.join(' ');
+  };
 
-
+  // Helper function to format location display name
+  const formatLocationName = (location: any) => {
+    if (!location.label) return `Location #${location.id}`;
+    
+    // Get the first two parts for a cleaner display
+    const parts = location.label.split(',');
+    if (parts.length >= 2) {
+      return `${parts[0].trim()}, ${parts[1].trim()}`;
+    }
+    return parts[0].trim();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -85,15 +126,15 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
             <div className="space-y-2">
               <Label>Contact *</Label>
               <Select
-                value={formData.contact_id || ''}
-                onValueChange={(value: any) => handleChange('contact_id', Number(value))}
+                value={formData.contact_id?.toString() || ''}
+                onValueChange={(value: string) => handleChange('contact_id', Number(value))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select contact" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   {contacts.map(c => (
-                    <SelectItem key={c.id} value={c.id}>
+                    <SelectItem key={c.id} value={c.id.toString()}>
                       {c.full_name} ({c.phone || c.email})
                     </SelectItem>
                   ))}
@@ -106,18 +147,17 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
               <Label>Source *</Label>
               <Select
                 value={formData.source || ''}
-                onValueChange={(value: any) => handleChange('source', value)}
+                onValueChange={(value: string) => handleChange('source', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select source" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="website">Website</SelectItem>
-                  <SelectItem value="referral">Referral</SelectItem>
-                  <SelectItem value="social">Social Media</SelectItem>
-                  <SelectItem value="walkin">Walk-in</SelectItem>
-                  <SelectItem value="email">Email Campaign</SelectItem>
-                  <SelectItem value="phone">Phone Inquiry</SelectItem>
+                  {['website', 'referral', 'social', 'walkin', 'email', 'phone'].map(source => (
+                    <SelectItem key={source} value={source}>
+                      {source.charAt(0).toUpperCase() + source.slice(1)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -128,7 +168,7 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
               <Input
                 type="number"
                 value={formData.budget_min || ''}
-                onChange={e => handleChange('budget_min', Number(e.target.value))}
+                onChange={e => handleChange('budget_min', e.target.value === '' ? undefined : Number(e.target.value))}
               />
             </div>
             <div className="space-y-2">
@@ -136,37 +176,7 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
               <Input
                 type="number"
                 value={formData.budget_max || ''}
-                onChange={e => handleChange('budget_max', Number(e.target.value))}
-              />
-            </div>
-
-            {/* Preferred Locations */}
-            <div className="space-y-2 md:col-span-2">
-              <Label>Preferred Locations</Label>
-              <Input
-                placeholder="1,2,3"
-                value={formData.preferred_location_ids?.join(',') || ''}
-                onChange={e =>
-                  handleChange(
-                    'preferred_location_ids',
-                    e.target.value.split(',').map(Number)
-                  )
-                }
-              />
-            </div>
-
-            {/* Properties */}
-            <div className="space-y-2 md:col-span-2">
-              <Label>Property IDs</Label>
-              <Input
-                placeholder="1,2,3"
-                value={formData.property_ids?.join(',') || ''}
-                onChange={e =>
-                  handleChange(
-                    'property_ids',
-                    e.target.value.split(',').map(Number)
-                  )
-                }
+                onChange={e => handleChange('budget_max', e.target.value === '' ? undefined : Number(e.target.value))}
               />
             </div>
 
@@ -175,13 +185,13 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
               <Label>Status *</Label>
               <Select
                 value={formData.status || ''}
-                onValueChange={(value: any) => handleChange('status', value)}
+                onValueChange={(value: string) => handleChange('status', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="new_lead">New</SelectItem>
+                  <SelectItem value="new_lead">New Lead</SelectItem>
                   <SelectItem value="contacted">Contacted</SelectItem>
                   <SelectItem value="viewing_scheduled">Viewing Scheduled</SelectItem>
                   <SelectItem value="offer_made">Offer Made</SelectItem>
@@ -195,15 +205,15 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
             <div className="space-y-2">
               <Label>Assigned To *</Label>
               <Select
-                value={formData.assigned_to_id || ''}
-                onValueChange={(value: any) => handleChange('assigned_to_id', Number(value))}
+                value={formData.assigned_to_id?.toString() || ''}
+                onValueChange={(value: string) => handleChange('assigned_to_id', Number(value))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Assign agent" />
                 </SelectTrigger>
                 <SelectContent>
                   {users.map(u => (
-                    <SelectItem key={u.id} value={u.id}>
+                    <SelectItem key={u.id} value={u.id.toString()}>
                       {u.full_name} ({u.role?.name})
                     </SelectItem>
                   ))}
@@ -211,23 +221,21 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
               </Select>
             </div>
 
-            {/* Beds */}
+            {/* Beds & Baths */}
             <div className="space-y-2">
               <Label>Beds</Label>
               <Input
                 type="number"
                 value={formData.bed || ''}
-                onChange={e => handleChange('bed', Number(e.target.value))}
+                onChange={e => handleChange('bed', e.target.value === '' ? undefined : Number(e.target.value))}
               />
             </div>
-
-            {/* Baths */}
             <div className="space-y-2">
               <Label>Baths</Label>
               <Input
                 type="number"
                 value={formData.bath || ''}
-                onChange={e => handleChange('bath', Number(e.target.value))}
+                onChange={e => handleChange('bath', e.target.value === '' ? undefined : Number(e.target.value))}
               />
             </div>
 
@@ -236,17 +244,17 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
               <Label>Property Type</Label>
               <Select
                 value={formData.property_type || ''}
-                onValueChange={(value: any) => handleChange('property_type', value)}
+                onValueChange={(value: string) => handleChange('property_type', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="apartment">Apartment</SelectItem>
-                  <SelectItem value="house">House</SelectItem>
-                  <SelectItem value="villa">Villa</SelectItem>
-                  <SelectItem value="plot">Plot</SelectItem>
-                  <SelectItem value="commercial">Commercial</SelectItem>
+                  {['villa', 'apartment', 'townhouse', 'penthouse', 'studio', 'house', 'plot', 'commercial'].map(type => (
+                    <SelectItem key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -256,7 +264,7 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
               <Label>Lead Type</Label>
               <Select
                 value={formData.lead_type || ''}
-                onValueChange={(value: any) => handleChange('lead_type', value)}
+                onValueChange={(value: string) => handleChange('lead_type', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Type" />
@@ -266,6 +274,45 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
                   <SelectItem value="sale">Sale</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Preferred Locations - Full Width */}
+            <div className="space-y-2 md:col-span-2">
+              <MultiSelectDropdown
+                label="Preferred Locations"
+                options={locations.map(l => ({ 
+                  id: l.id, 
+                  name: formatLocationName(l)
+                }))}
+                selectedIds={formData.preferred_location_ids || []}
+                onChange={ids => handleChange('preferred_location_ids', ids)}
+                placeholder="Select locations..."
+              />
+            </div>
+
+            {/* Properties - Full Width */}
+            <div className="space-y-2 md:col-span-2">
+              <MultiSelectDropdown
+                label="Properties"
+                options={properties.map(p => ({
+                  id: p.id,
+                  name: formatPropertyName(p)
+                }))}
+                selectedIds={formData.property_ids || []}
+                onChange={ids => handleChange('property_ids', ids)}
+                placeholder="Select properties..."
+              />
+            </div>
+
+            {/* Notes - Full Width */}
+            <div className="space-y-2 md:col-span-2">
+              <Label>Notes</Label>
+              <Input
+                type="text"
+                value={formData.notes_attributes?.[0]?.body || ''}
+                onChange={e => handleChange('notes_attributes', [{ body: e.target.value }])}
+                placeholder="Add notes..."
+              />
             </div>
 
           </div>

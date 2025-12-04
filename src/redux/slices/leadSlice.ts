@@ -14,7 +14,7 @@ export interface Lead {
   source?: string;
   budget_min?: number;
   budget_max?: number;
-  preferred_location_ids?: number[];
+    preferred_location_ids?: number[];
   property_ids?: number[];
   bed?: number;
   bath?: number;

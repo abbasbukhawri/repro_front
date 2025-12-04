@@ -14,7 +14,7 @@ import { LogCallModal } from '../../components/modals/LogCallModal';
 import { AddNoteModal } from '../../components/modals/AddNoteModal';
 import { AdvancedFiltersModal } from '../../components/modals/AdvancedFiltersModal';
 import { toast } from 'sonner';
-
+import { Lead } from '../../redux/slices/leadSlice';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { fetchLeads, createLead, updateLead, deleteLead, Lead as LeadType } from '../../redux/slices/leadSlice';
 
@@ -36,6 +36,9 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
   const [selectedLeadForAction, setSelectedLeadForAction] = useState<LeadType | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedLeadForDelete, setSelectedLeadForDelete] = useState<LeadType | null>(null);
+const [advancedFilters, setAdvancedFilters] = useState<Partial<Lead>>({});
+
+
 
   useEffect(() => {
     dispatch(fetchLeads());
@@ -58,15 +61,50 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
     assigned_to_name: lead.assignee ? `${lead.assignee.first_name} ${lead.assignee.last_name}` : 'Unassigned',
   }));
 
-  const filteredLeads = displayLeads.filter(lead => {
-    const matchesSearch =
-      !searchQuery ||
-      (lead.name && lead.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (lead.phone && lead.phone.includes(searchQuery)) ||
-      (lead.email && lead.email.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || (lead.status?.toLowerCase() === statusFilter.toLowerCase());
-    return matchesSearch && matchesStatus;
+const filteredLeads = displayLeads.filter((lead: any) => {
+  // SEARCH
+  const matchesSearch =
+    !searchQuery ||
+    lead?.name?.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
+    lead?.phone?.toString().includes(searchQuery) ||
+    lead?.email?.toString().toLowerCase().includes(searchQuery.toLowerCase());
+
+  // STATUS
+  const matchesStatus =
+    !statusFilter ||
+    statusFilter === "all" ||
+    lead?.status?.toLowerCase() === statusFilter.toLowerCase();
+
+  // ADVANCED FILTERS
+  const matchesAdvanced = Object.entries(advancedFilters).every(([key, value]) => {
+    if (!value || value === "all") return true;
+
+    switch (key) {
+      case "budget_min":
+        return Number(lead?.budget_min || 0) >= Number(value);
+
+      case "budget_max":
+        return Number(lead?.budget_max || 0) <= Number(value);
+
+      case "assigned_to_id":
+        return value === "unassigned"
+          ? !lead?.assigned_to_id
+          : Number(lead?.assigned_to_id) === Number(value);
+
+      case "property_ids":
+        return lead?.property_ids?.includes(Number(value));
+
+      case "preferred_location_ids":
+        return lead?.preferred_location_ids?.includes(Number(value));
+
+      default:
+        return lead?.[key]?.toString().toLowerCase() === value.toLowerCase();
+    }
   });
+
+  return matchesSearch && matchesStatus && matchesAdvanced;
+});
+
 
   const handleAddLead = (data: any) => {
     dispatch(createLead({
@@ -304,7 +342,7 @@ export function LeadsList({ brand, onNavigate, onSelectLead }: LeadsListProps) {
       />
       <LogCallModal isOpen={isLogCallModalOpen} onClose={() => setIsLogCallModalOpen(false)} onSubmit={() => toast.success('Call logged')} leadName={selectedLeadForAction?.name} />
       <AddNoteModal isOpen={isAddNoteModalOpen} onClose={() => setIsAddNoteModalOpen(false)} onSubmit={() => toast.success('Note added')} entityName={selectedLeadForAction?.name} />
-      <AdvancedFiltersModal isOpen={isAdvancedFiltersOpen} onClose={() => setIsAdvancedFiltersOpen(false)} onApply={(filters) => toast.success('Filters applied')} brand={brand} />
+      <AdvancedFiltersModal isOpen={isAdvancedFiltersOpen} onClose={() => setIsAdvancedFiltersOpen(false)}onApply={(filters) => setAdvancedFilters(filters)} brand={brand} />
 
       {/* Delete Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
